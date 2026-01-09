@@ -23,19 +23,45 @@ const PickleballLoader = () => (
     </div>
 );
 
-// WATERMARK COMPONENT - Tiled Pattern for Security
+// WATERMARK COMPONENT - EXTREME SECURITY
+// Creates a very dense cross-hatch pattern with 3 layers
 const WatermarkOverlay = () => (
-    <div className="absolute inset-0 z-10 pointer-events-none select-none overflow-hidden mix-blend-overlay opacity-40">
-        <div className="w-full h-full" style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='250' height='250' viewBox='0 0 250 250' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-weight='900' font-size='20' fill='white' text-anchor='middle' dominant-baseline='middle' transform='rotate(-45 125 125)'%3E@remakingagency%3C/text%3E%3C/svg%3E")`,
-            backgroundRepeat: 'repeat'
-        }}></div>
+    <>
+        {/* Layer 1: Strong Diagonal -45deg - Tight Grid (70px) */}
+        <div className="absolute inset-0 z-10 pointer-events-none select-none overflow-hidden opacity-[0.55] mix-blend-overlay">
+            <div className="w-full h-full" style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg width='70' height='70' viewBox='0 0 70 70' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-weight='900' font-size='10' fill='white' text-anchor='middle' dominant-baseline='middle' transform='rotate(-45 35 35)'%3E@remakingagency%3C/text%3E%3C/svg%3E")`,
+                backgroundRepeat: 'repeat'
+            }}></div>
+        </div>
+        {/* Layer 2: Cross Diagonal +45deg - Tight Grid (70px) */}
+        <div className="absolute inset-0 z-10 pointer-events-none select-none overflow-hidden opacity-[0.55] mix-blend-overlay">
+             <div className="w-full h-full" style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg width='70' height='70' viewBox='0 0 70 70' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-weight='900' font-size='10' fill='white' text-anchor='middle' dominant-baseline='middle' transform='rotate(45 35 35)'%3E@remakingagency%3C/text%3E%3C/svg%3E")`,
+                backgroundRepeat: 'repeat'
+            }}></div>
+        </div>
+        {/* Layer 3: Horizontal Filler - Adds chaotic noise to prints */}
+        <div className="absolute inset-0 z-10 pointer-events-none select-none overflow-hidden opacity-[0.3] mix-blend-overlay">
+             <div className="w-full h-full" style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='50' viewBox='0 0 100 50' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-weight='900' font-size='9' fill='white' text-anchor='middle' dominant-baseline='middle' opacity='0.8'%3EREMAKING%3C/text%3E%3C/svg%3E")`,
+                backgroundRepeat: 'repeat'
+            }}></div>
+        </div>
+    </>
+);
+
+// NOISE OVERLAY - Subtle grain (12% opacity)
+// Helps prevent AI upscaling/cleaning without ruining the viewing experience
+const NoiseOverlay = () => (
+    <div className="absolute inset-0 z-10 pointer-events-none opacity-[0.15] mix-blend-overlay" 
+         style={{backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`}}>
     </div>
 );
 
-// CSS Class for "Preview Quality" simulation
-// Adds slight blur and noise to simulate low-res preview
-const PREVIEW_QUALITY_CLASS = "filter blur-[0.5px] contrast-[0.95] brightness-[0.95]";
+// CSS Class for "Preview Quality"
+// Slight contrast boost to make photo attractive for sale, but NO blur.
+const PREVIEW_QUALITY_CLASS = "contrast-[1.05] brightness-[1.02]";
 
 // Componente de Cartão de Imagem
 interface ImageCardProps {
@@ -71,7 +97,7 @@ const ImageCard: React.FC<ImageCardProps> = ({ photo, onClick, index }) => {
       {/* Placeholder */}
       {!isLoaded && <div className="absolute inset-0 bg-gray-200 animate-pulse h-64 w-full" />}
       
-      <div className="relative overflow-hidden">
+      <div className="relative overflow-hidden bg-gray-900">
         <img 
             src={photo.url} 
             alt="Momento do evento" 
@@ -81,11 +107,12 @@ const ImageCard: React.FC<ImageCardProps> = ({ photo, onClick, index }) => {
             onDragStart={(e) => e.preventDefault()} // Disable Drag
         />
 
-        {/* Watermark on Grid - ALWAYS VISIBLE regardless of cart status */}
+        {/* Security Layers */}
+        <NoiseOverlay />
         <WatermarkOverlay />
         
         {/* Short ID Badge - Always Visible on corner */}
-        <div className="absolute top-2 left-2 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded text-[9px] font-mono text-white/90 border border-white/10 z-20">
+        <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded text-[9px] font-mono text-white/90 border border-white/10 z-20">
             #{displayId}
         </div>
 
@@ -431,7 +458,7 @@ export const EventView: React.FC = () => {
                 onClick={e => e.stopPropagation()}
                 onContextMenu={(e) => e.preventDefault()}
             >
-                <div className="relative max-w-full max-h-[70vh] md:max-h-[75vh] inline-block shadow-2xl overflow-hidden rounded-sm transition-all duration-500">
+                <div className="relative max-w-full max-h-[70vh] md:max-h-[75vh] inline-block shadow-2xl overflow-hidden rounded-sm transition-all duration-500 bg-gray-900">
                     {/* Protection Layer - Prevents dragging/right click visually */}
                     <div className="absolute inset-0 z-20"></div>
 
@@ -442,7 +469,8 @@ export const EventView: React.FC = () => {
                         className={`max-w-full max-h-[70vh] md:max-h-[75vh] object-contain animate-[fadeIn_0.3s_ease-out] select-none pointer-events-none ${PREVIEW_QUALITY_CLASS}`} 
                         onDragStart={(e) => e.preventDefault()}
                     />
-                    {/* Always show Watermark */}
+                    {/* Always show Watermark & Noise */}
+                    <NoiseOverlay />
                     <WatermarkOverlay />
                 </div>
             </div>

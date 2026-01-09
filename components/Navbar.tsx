@@ -51,9 +51,9 @@ export const Navbar: React.FC = () => {
           {/* Logo Area */}
           <Link to="/" className="flex items-center gap-3 md:gap-4 group z-50 relative select-none">
             <img 
-              src="https://i.imgur.com/KFvjnX6.jpeg" 
+              src="https://i.imgur.com/bzRDtwz.png" 
               alt="Remaking Agency" 
-              className="h-10 md:h-12 w-auto group-hover:scale-105 transition-transform duration-300 mix-blend-screen" 
+              className="h-10 md:h-12 w-auto group-hover:scale-105 transition-transform duration-300" 
             />
             <div className="flex flex-col">
                <span className="text-white font-display font-bold text-lg md:text-xl leading-none tracking-wide group-hover:text-gray-300 transition-colors uppercase">
@@ -128,4 +128,3 @@ export const Navbar: React.FC = () => {
       </div>
     </nav>
   );
-};
