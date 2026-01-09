@@ -106,7 +106,7 @@ Poderia me enviar a chave PIX?`;
                     <div>
                         <div className="flex justify-between items-start">
                             <span className="text-[10px] uppercase font-bold text-gray-400 font-mono tracking-wider bg-gray-100 px-1.5 py-0.5 rounded">REF: {shortId}</span>
-                            <span className="text-xs font-bold text-green-600">R$ 10,00</span>
+                            <span className="text-xs font-bold text-green-600">R$ 15,00</span>
                         </div>
                         <h4 className="text-sm font-bold text-gray-800 line-clamp-1 mt-1">{item.caption || 'Pickleball Action'}</h4>
                     </div>
@@ -130,7 +130,7 @@ Poderia me enviar a chave PIX?`;
            <div className="mb-6">
               <div className="flex justify-between text-xs font-bold text-gray-500 uppercase mb-2">
                  <span>Nível de Desconto</span>
-                 <span className="text-pickle-600 bg-pickle/10 px-2 py-0.5 rounded">{discountPercent * 100}% OFF</span>
+                 <span className="text-pickle-600 bg-pickle/10 px-2 py-0.5 rounded">{Math.round(discountPercent * 100)}% OFF</span>
               </div>
               <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden flex shadow-inner">
                  <div className={`h-full transition-all duration-500 border-r border-white/50 ${itemsCount >= 3 ? 'bg-yellow-400' : 'bg-gray-200'}`} style={{ width: '33%' }} title="3+ Fotos" />

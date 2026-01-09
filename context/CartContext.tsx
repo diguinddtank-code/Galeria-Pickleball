@@ -37,17 +37,19 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const clearCart = () => setItems([]);
 
   // Pricing Logic
-  const PRICE_PER_PHOTO = 10;
+  const PRICE_PER_PHOTO = 15; // Updated to R$ 15.00
   const itemsCount = items.length;
   const subtotal = itemsCount * PRICE_PER_PHOTO;
 
   let discountPercent = 0;
+  
+  // Progressive Discount Logic
   if (itemsCount >= 3 && itemsCount <= 5) {
-    discountPercent = 0.10; // 10%
+    discountPercent = 0.10; // 10% for 3-5 photos
   } else if (itemsCount >= 6 && itemsCount <= 10) {
-    discountPercent = 0.20; // 20%
+    discountPercent = 0.20; // 20% for 6-10 photos
   } else if (itemsCount > 10) {
-    discountPercent = 0.30; // 30%
+    discountPercent = 0.30; // 30% for >10 photos
   }
 
   const discount = subtotal * discountPercent;
