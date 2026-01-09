@@ -1,8 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Upload, Trash2, Wand2, X, Image as ImageIcon, Check, Tag, User, Clock, AlertCircle } from 'lucide-react';
+import { Plus, Upload, Trash2, X, Image as ImageIcon, Check, Tag, User, Clock, AlertCircle } from 'lucide-react';
 import { dataService } from '../services/dataService';
-import { generateEventDescription } from '../services/geminiService';
 import { PickleballEvent, PhotoUploadDraft } from '../types';
 import { AdminChart } from '../components/AdminChart';
 
@@ -29,8 +28,6 @@ export const Admin: React.FC = () => {
     tags: []
   });
   const [tagsInput, setTagsInput] = useState(''); // Temporary string for event tags
-
-  const [generatingAI, setGeneratingAI] = useState(false);
   
   // Photo Upload State
   const [uploadEventId, setUploadEventId] = useState<string | null>(null);
@@ -60,17 +57,6 @@ export const Admin: React.FC = () => {
     } else {
       alert('Senha incorreta!');
     }
-  };
-
-  const handleGenerateDescription = async () => {
-    if (!newEvent.title || !newEvent.location) {
-      alert('Preencha o nome do evento e local antes de gerar a descrição.');
-      return;
-    }
-    setGeneratingAI(true);
-    const desc = await generateEventDescription(newEvent.title || '', `${newEvent.location} - Data: ${newEvent.date}`);
-    setNewEvent(prev => ({ ...prev, description: desc }));
-    setGeneratingAI(false);
   };
 
   const handleCreateEvent = async (e: React.FormEvent) => {
@@ -452,16 +438,7 @@ export const Admin: React.FC = () => {
 
                     <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
                         <div className="flex justify-between items-center mb-2">
-                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Descrição Inteligente</label>
-                            <button 
-                                type="button"
-                                onClick={handleGenerateDescription}
-                                disabled={generatingAI}
-                                className="text-xs flex items-center text-pickle-700 bg-pickle-100 hover:bg-pickle-200 px-3 py-1.5 rounded-full font-bold transition-colors"
-                            >
-                                <Wand2 className={`w-3 h-3 mr-1.5 ${generatingAI ? 'animate-spin' : ''}`} />
-                                {generatingAI ? 'Criando...' : 'Gerar com IA'}
-                            </button>
+                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Descrição</label>
                         </div>
                         <textarea 
                             rows={3}
