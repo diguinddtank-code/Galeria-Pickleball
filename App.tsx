@@ -1,6 +1,7 @@
 import React from 'react';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
+import { MobileNav } from './components/MobileNav';
 import { Home } from './pages/Home';
 import { Admin } from './pages/Admin';
 import { EventView } from './pages/EventView';
@@ -23,7 +24,9 @@ const App: React.FC = () => {
             </Routes>
           </main>
           
-          <footer className="bg-white border-t border-gray-200 mt-auto py-8">
+          <MobileNav />
+
+          <footer className="bg-white border-t border-gray-200 mt-auto py-8 mb-16 md:mb-0">
               <div className="max-w-7xl mx-auto px-4 text-center text-gray-500 text-sm">
                   <p>&copy; {new Date().getFullYear()} PickleballBH. Todos os direitos reservados.</p>
                   <p className="mt-1">Desenvolvido com tecnologia Gemini.</p>

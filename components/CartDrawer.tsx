@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { ShoppingCart, X, Trash2, Check, ChevronRight, AlertCircle, Camera, MessageCircle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
@@ -12,11 +12,12 @@ export const CartDrawer: React.FC = () => {
     discount, 
     total, 
     discountPercent, 
-    itemsCount 
+    itemsCount,
+    isCartOpen,
+    openCart,
+    closeCart
   } = useCart();
   
-  const [isOpen, setIsOpen] = useState(false);
-
   if (itemsCount === 0) return null;
 
   const handleCheckout = () => {
@@ -44,10 +45,10 @@ Poderia me enviar a chave PIX?`;
 
   return (
     <>
-      {/* Floating Toggle Button */}
+      {/* Floating Toggle Button - HIDDEN ON MOBILE (md:flex), because MobileNav handles it now */}
       <button
-        onClick={() => setIsOpen(true)}
-        className={`fixed bottom-8 right-8 z-50 flex items-center bg-pickle text-brand-dark px-6 py-4 rounded-full font-bold shadow-[0_0_20px_rgba(204,255,0,0.5)] transition-all transform hover:scale-105 active:scale-95 hover:shadow-[0_0_30px_rgba(204,255,0,0.7)] ${isOpen ? 'translate-y-24 opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}
+        onClick={openCart}
+        className={`hidden md:flex fixed bottom-8 right-8 z-50 items-center bg-pickle text-brand-dark px-6 py-4 rounded-full font-bold shadow-[0_0_20px_rgba(204,255,0,0.5)] transition-all transform hover:scale-105 active:scale-95 hover:shadow-[0_0_30px_rgba(204,255,0,0.7)] ${isCartOpen ? 'translate-y-24 opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}
       >
         <div className="relative">
             <ShoppingCart className="w-5 h-5 mr-3" />
@@ -61,12 +62,12 @@ Poderia me enviar a chave PIX?`;
 
       {/* Drawer Overlay */}
       <div 
-        className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-50 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-        onClick={() => setIsOpen(false)}
+        className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] transition-opacity duration-300 ${isCartOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        onClick={closeCart}
       />
 
       {/* Drawer Content */}
-      <div className={`fixed top-0 right-0 h-full w-full max-w-md bg-white z-[51] shadow-2xl transform transition-transform duration-300 ease-out flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed top-0 right-0 h-full w-full max-w-md bg-white z-[61] shadow-2xl transform transition-transform duration-300 ease-out flex flex-col ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         
         {/* Header */}
         <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-brand-dark text-white">
@@ -77,7 +78,7 @@ Poderia me enviar a chave PIX?`;
             </h2>
             <p className="text-xs text-gray-400 font-medium mt-1">Garanta suas memórias antes que expirem</p>
           </div>
-          <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+          <button onClick={closeCart} className="p-2 hover:bg-white/10 rounded-full transition-colors">
             <X className="w-6 h-6 text-white" />
           </button>
         </div>

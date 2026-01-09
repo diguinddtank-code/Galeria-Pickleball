@@ -12,18 +12,26 @@ interface CartContextType {
   discount: number;
   discountPercent: number;
   itemsCount: number;
+  // UI State
+  isCartOpen: boolean;
+  openCart: () => void;
+  closeCart: () => void;
+  toggleCart: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<Photo[]>([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   const addItem = (photo: Photo) => {
     setItems((prev) => {
       if (prev.find((p) => p.id === photo.id)) return prev;
       return [...prev, photo];
     });
+    // Optional: Open cart when item is added for better feedback
+    // setIsCartOpen(true); 
   };
 
   const removeItem = (photoId: string) => {
@@ -35,6 +43,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const clearCart = () => setItems([]);
+  
+  // UI Actions
+  const openCart = () => setIsCartOpen(true);
+  const closeCart = () => setIsCartOpen(false);
+  const toggleCart = () => setIsCartOpen(prev => !prev);
 
   // Pricing Logic
   const PRICE_PER_PHOTO = 15; // Updated to R$ 15.00
@@ -66,7 +79,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       subtotal,
       discount,
       discountPercent,
-      itemsCount
+      itemsCount,
+      isCartOpen,
+      openCart,
+      closeCart,
+      toggleCart
     }}>
       {children}
     </CartContext.Provider>
