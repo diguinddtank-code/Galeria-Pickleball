@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, MapPin, ArrowRight, Camera, Search, X } from 'lucide-react';
+import { Calendar, MapPin, ArrowRight, Camera, Search, X, Layers } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { dataService } from '../services/dataService';
 import { PickleballEvent } from '../types';
@@ -138,71 +138,91 @@ export const Home: React.FC = () => {
         </div>
         
         {/* Events Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
             <AnimatePresence mode="popLayout">
-                {filteredEvents.map((event) => (
+                {filteredEvents.map((event, index) => (
                     <motion.div
                         layout
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9 }}
-                        transition={{ duration: 0.3 }}
+                        transition={{ duration: 0.4, delay: index * 0.1 }}
                         key={event.id}
+                        className="group relative"
                     >
                         <Link 
                         to={`/event/${event.id}`}
-                        className="group bg-white rounded-2xl shadow-xl shadow-gray-200/50 hover:shadow-2xl hover:shadow-gray-300 hover:-translate-y-2 transition-all duration-300 overflow-hidden flex flex-col h-full border border-gray-100"
+                        className="block h-full"
                         >
-                        {/* Card Image */}
-                        <div className="relative h-64 overflow-hidden">
-                            <img 
-                            src={event.coverImage} 
-                            alt={event.title} 
-                            className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-in-out filter brightness-[0.95] group-hover:brightness-100"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-90"></div>
-                            
-                            {/* Date Badge */}
-                            <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-md px-4 py-2 rounded-xl shadow-lg flex flex-col items-center min-w-[70px] border border-gray-100">
-                                <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">
-                                    {new Date(event.date).toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')}
-                                </span>
-                                <span className="text-2xl font-black text-gray-900 leading-none mt-0.5 font-display">
-                                    {new Date(event.date).getDate() + 1}
-                                </span>
-                            </div>
-                        </div>
+                            {/* Stack Effect Backgrounds */}
+                            <div className="absolute top-2 left-2 right-2 bottom-0 bg-white border border-gray-200 rounded-2xl transform rotate-2 shadow-sm transition-transform group-hover:rotate-3 group-hover:translate-y-1 z-0"></div>
+                            <div className="absolute top-2 left-2 right-2 bottom-0 bg-white border border-gray-200 rounded-2xl transform -rotate-2 shadow-sm transition-transform group-hover:-rotate-3 group-hover:translate-y-1 z-0"></div>
 
-                        {/* Card Content */}
-                        <div className="p-7 flex-1 flex flex-col relative">
-                            {/* Floating Paddle Icon Decorative */}
-                            <div className="absolute -top-6 right-6 bg-brand-dark text-pickle p-3 rounded-full shadow-lg transform rotate-12 group-hover:rotate-0 transition-transform duration-300 border-4 border-white">
-                                <Camera className="w-5 h-5" />
-                            </div>
+                            {/* Main Card */}
+                            <div className="relative bg-white rounded-2xl shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] transition-all duration-300 overflow-hidden border border-gray-100 h-full flex flex-col z-10 transform group-hover:-translate-y-1">
+                                
+                                {/* Image Area */}
+                                <div className="relative h-64 overflow-hidden bg-gray-100">
+                                    <img 
+                                        src={event.coverImage} 
+                                        alt={event.title} 
+                                        className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out"
+                                    />
+                                    
+                                    {/* Overlay Gradient */}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80"></div>
+                                    
+                                    {/* Content Over Image */}
+                                    <div className="absolute bottom-0 left-0 w-full p-6">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className="px-2.5 py-1 rounded-md bg-white/20 backdrop-blur-md border border-white/10 text-[10px] font-bold uppercase text-white tracking-wider">
+                                                {event.category || 'Geral'}
+                                            </span>
+                                            {event.status === 'live' && (
+                                                <span className="px-2.5 py-1 rounded-md bg-red-500 text-[10px] font-bold uppercase text-white tracking-wider animate-pulse">
+                                                    Ao Vivo
+                                                </span>
+                                            )}
+                                        </div>
+                                        <h3 className="text-2xl font-bold font-display text-white uppercase leading-none shadow-black drop-shadow-md">
+                                            {event.title}
+                                        </h3>
+                                    </div>
 
-                            <h3 className="text-xl font-bold font-display text-gray-900 mb-3 group-hover:text-gray-600 transition-colors line-clamp-2 leading-tight uppercase">
-                            {event.title}
-                            </h3>
-                            
-                            <div className="flex items-center text-sm text-gray-500 mb-5 font-medium">
-                            <MapPin className="w-4 h-4 mr-1.5 text-pickle-600" />
-                            {event.location}
-                            </div>
+                                    {/* Date Badge (Top Right) */}
+                                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg shadow-lg flex flex-col items-center border border-white/50">
+                                        <span className="text-[10px] font-bold text-gray-500 uppercase">
+                                            {new Date(event.date).toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')}
+                                        </span>
+                                        <span className="text-xl font-black text-gray-900 leading-none font-display">
+                                            {new Date(event.date).getDate() + 1}
+                                        </span>
+                                    </div>
+                                </div>
 
-                            <p className="text-gray-600 text-sm mb-6 line-clamp-3 flex-1 leading-relaxed border-l-2 border-gray-100 pl-3">
-                            {event.description}
-                            </p>
+                                {/* Body Content */}
+                                <div className="p-6 flex-1 flex flex-col">
+                                    <div className="flex items-start justify-between mb-4">
+                                        <div className="flex items-center text-sm text-gray-500 font-medium">
+                                            <MapPin className="w-4 h-4 mr-1.5 text-pickle-600" />
+                                            {event.location}
+                                        </div>
+                                        <div className="flex items-center text-xs font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded-md border border-gray-100">
+                                            <Layers className="w-3 h-3 mr-1.5" />
+                                            {event.totalPhotos || 0} fotos
+                                        </div>
+                                    </div>
 
-                            <div className="flex items-center justify-between pt-5 border-t border-gray-50 mt-auto">
-                            <div className="flex items-center text-gray-400 text-xs font-bold uppercase tracking-wider">
-                                {event.totalPhotos || 0} fotos
+                                    <div className="mt-auto pt-4 border-t border-dashed border-gray-200 flex items-center justify-between group/btn">
+                                        <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                            Acessar Álbum
+                                        </span>
+                                        <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center group-hover/btn:bg-pickle group-hover/btn:scale-110 transition-all duration-300">
+                                            <ArrowRight className="w-5 h-5 text-gray-400 group-hover/btn:text-brand-dark transition-colors" />
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <span className="flex items-center text-gray-900 font-bold text-sm hover:underline decoration-2 underline-offset-4 decoration-pickle">
-                                Ver Fotos
-                                <ArrowRight className="w-4 h-4 ml-1.5 transform group-hover:translate-x-1 transition-transform" />
-                            </span>
-                            </div>
-                        </div>
                         </Link>
                     </motion.div>
                 ))}
