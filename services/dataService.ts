@@ -83,6 +83,20 @@ export const dataService = {
     }
   },
 
+  updateEvent: async (id: string, eventData: Partial<PickleballEvent>): Promise<void> => {
+    try {
+      const eventRef = doc(db, EVENTS_COLLECTION, id);
+      // Remove undefined fields to prevent firestore errors
+      const cleanData = Object.fromEntries(
+        Object.entries(eventData).filter(([_, v]) => v !== undefined)
+      );
+      await updateDoc(eventRef, cleanData);
+    } catch (error) {
+      console.error("Error updating event:", error);
+      throw error;
+    }
+  },
+
   uploadPhotos: async (eventId: string, drafts: PhotoUploadDraft[]): Promise<void> => {
     try {
       const uploadPromises = drafts.map(async (draft) => {

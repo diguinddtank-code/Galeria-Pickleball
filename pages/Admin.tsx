@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Upload, Trash2, X, Image as ImageIcon, Check, Tag, User, Clock, AlertCircle } from 'lucide-react';
+import { Plus, Upload, Trash2, X, Image as ImageIcon, Check, Tag, User, Clock, Pencil, LayoutDashboard, Calendar } from 'lucide-react';
 import { dataService } from '../services/dataService';
 import { PickleballEvent, PhotoUploadDraft } from '../types';
 import { AdminChart } from '../components/AdminChart';
@@ -15,7 +15,10 @@ export const Admin: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Form State - Advanced
+  // Edit State
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Form State
   const [newEvent, setNewEvent] = useState<Partial<PickleballEvent>>({
     title: '',
     date: '',
@@ -27,7 +30,7 @@ export const Admin: React.FC = () => {
     status: 'completed',
     tags: []
   });
-  const [tagsInput, setTagsInput] = useState(''); // Temporary string for event tags
+  const [tagsInput, setTagsInput] = useState(''); 
   
   // Photo Upload State
   const [uploadEventId, setUploadEventId] = useState<string | null>(null);
@@ -59,7 +62,39 @@ export const Admin: React.FC = () => {
     }
   };
 
-  const handleCreateEvent = async (e: React.FormEvent) => {
+  const openEditModal = (event: PickleballEvent) => {
+    setEditingId(event.id);
+    setNewEvent({
+        title: event.title,
+        date: event.date,
+        location: event.location,
+        description: event.description,
+        coverImage: event.coverImage,
+        organizer: event.organizer,
+        category: event.category,
+        status: event.status,
+    });
+    setTagsInput(event.tags ? event.tags.join(', ') : '');
+    setIsModalOpen(true);
+  };
+
+  const openCreateModal = () => {
+    setEditingId(null);
+    setNewEvent({ 
+        title: '', 
+        date: '', 
+        location: '', 
+        description: '', 
+        coverImage: '', 
+        organizer: '', 
+        category: '', 
+        status: 'completed' 
+    });
+    setTagsInput('');
+    setIsModalOpen(true);
+  };
+
+  const handleSaveEvent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newEvent.title || !newEvent.date || !newEvent.location) return;
 
@@ -68,7 +103,7 @@ export const Admin: React.FC = () => {
     // Process tags
     const processedTags = tagsInput.split(',').map(t => t.trim()).filter(t => t !== '');
 
-    const eventToCreate = {
+    const eventData = {
         title: newEvent.title,
         date: newEvent.date,
         location: newEvent.location,
@@ -77,20 +112,27 @@ export const Admin: React.FC = () => {
         category: newEvent.category || 'Geral',
         status: newEvent.status || 'completed',
         tags: processedTags,
-        coverImage: newEvent.coverImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(newEvent.title)}&background=CCFF00&color=0f172a&size=800`
+        coverImage: newEvent.coverImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(newEvent.title || 'Event')}&background=CCFF00&color=0f172a&size=800`
     };
 
-    await dataService.createEvent(eventToCreate);
-    await loadDashboard();
+    try {
+        if (editingId) {
+            await dataService.updateEvent(editingId, eventData);
+        } else {
+            await dataService.createEvent(eventData as any);
+        }
+        await loadDashboard();
+        setIsModalOpen(false);
+    } catch (error) {
+        console.error("Error saving event", error);
+        alert("Erro ao salvar evento");
+    }
     
     setLoading(false);
-    setIsModalOpen(false);
-    setNewEvent({ title: '', date: '', location: '', description: '', coverImage: '', organizer: '', category: '', status: 'completed' });
-    setTagsInput('');
   };
 
   const handleDeleteEvent = async (id: string) => {
-    if (window.confirm('Tem certeza que deseja excluir este evento?')) {
+    if (window.confirm('Tem certeza que deseja excluir este evento? Todas as fotos serão perdidas.')) {
         await dataService.deleteEvent(id);
         await loadDashboard();
     }
@@ -188,16 +230,21 @@ export const Admin: React.FC = () => {
   // --- Main Dashboard ---
   return (
     <div className="min-h-screen bg-gray-50 pb-20 pt-24">
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm/50 backdrop-blur-md bg-white/90">
           <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900 font-display uppercase tracking-wide">Dashboard</h1>
-                    <p className="text-gray-500 text-sm mt-1">Gerenciamento de Eventos e Mídia</p>
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-gray-100 rounded-lg">
+                        <LayoutDashboard className="w-6 h-6 text-gray-600" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900 font-display uppercase tracking-wide">Painel de Controle</h1>
+                        <p className="text-gray-500 text-xs mt-0.5 font-medium uppercase tracking-wider">Gestão PickleballBH</p>
+                    </div>
                 </div>
                 <button 
-                    onClick={() => setIsModalOpen(true)}
-                    className="mt-4 md:mt-0 bg-pickle text-brand-dark px-6 py-2.5 rounded-full flex items-center hover:bg-pickle-400 transition-all shadow-lg hover:shadow-xl font-bold uppercase text-xs tracking-wider"
+                    onClick={openCreateModal}
+                    className="mt-4 md:mt-0 bg-pickle text-brand-dark px-6 py-3 rounded-xl flex items-center hover:bg-pickle-400 transition-all shadow-lg hover:shadow-xl font-bold uppercase text-xs tracking-wider transform active:scale-95"
                 >
                     <Plus className="w-4 h-4 mr-2" />
                     Novo Evento
@@ -209,83 +256,86 @@ export const Admin: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         
         {/* Stats Section */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-100">
+        <div className="bg-white rounded-2xl shadow-sm p-6 mb-8 border border-gray-100">
             <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-bold text-gray-800 flex items-center">
                     <Clock className="w-5 h-5 mr-2 text-pickle-600" />
-                    Atividade Recente
+                    Visão Geral
                 </h3>
             </div>
             <AdminChart events={events} />
         </div>
 
         {/* Events List */}
-        <div className="flex items-center justify-between mb-4">
-             <h3 className="text-lg font-bold text-gray-800">Todos os Eventos</h3>
-             <span className="text-xs font-medium bg-gray-200 text-gray-600 px-2 py-1 rounded-md">{events.length} Total</span>
+        <div className="flex items-center justify-between mb-4 px-1">
+             <h3 className="text-lg font-bold text-gray-800">Seus Eventos</h3>
+             <span className="text-xs font-bold bg-gray-900 text-white px-3 py-1 rounded-full">{events.length}</span>
         </div>
         
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             {loading && events.length === 0 ? (
-                 <div className="p-12 text-center">
-                    <div className="animate-spin w-8 h-8 border-4 border-pickle border-t-transparent rounded-full mx-auto mb-4"></div>
-                    <p className="text-gray-500">Sincronizando com Firebase...</p>
+                 <div className="p-16 text-center">
+                    <div className="animate-spin w-10 h-10 border-4 border-pickle border-t-transparent rounded-full mx-auto mb-4"></div>
+                    <p className="text-gray-500 font-medium animate-pulse">Carregando dados...</p>
                  </div>
             ) : (
                 <ul className="divide-y divide-gray-100">
                     {events.map(event => (
                         <li key={event.id} className="p-6 hover:bg-gray-50 transition-colors group">
                             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                                <div className="flex items-start space-x-5">
-                                    <div className="relative">
+                                <div className="flex items-start space-x-5 w-full md:w-auto">
+                                    <div className="relative flex-shrink-0">
                                         <img 
                                             src={event.coverImage} 
                                             alt="thumb" 
-                                            className="w-20 h-20 rounded-xl object-cover bg-gray-200 shadow-sm border border-gray-100"
+                                            className="w-24 h-24 rounded-2xl object-cover bg-gray-200 shadow-sm border border-gray-100 group-hover:scale-105 transition-transform duration-300"
                                         />
-                                        <div className={`absolute -top-2 -right-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide text-white shadow-sm ${event.status === 'live' ? 'bg-red-500 animate-pulse' : 'bg-gray-800'}`}>
-                                            {event.status === 'live' ? 'Ao Vivo' : 'Finalizado'}
+                                        <div className={`absolute -top-2 -right-2 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide text-white shadow-md ${event.status === 'live' ? 'bg-red-500 animate-pulse' : event.status === 'upcoming' ? 'bg-blue-500' : 'bg-gray-800'}`}>
+                                            {event.status === 'live' ? 'Ao Vivo' : event.status === 'upcoming' ? 'Em Breve' : 'Finalizado'}
                                         </div>
                                     </div>
-                                    <div>
-                                        <h4 className="text-lg font-bold text-gray-900 font-display uppercase tracking-tight">{event.title}</h4>
-                                        <div className="flex flex-wrap gap-3 mt-1 text-sm text-gray-500">
-                                            <span>{new Date(event.date).toLocaleDateString('pt-BR')}</span>
-                                            <span>•</span>
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className="text-xl font-bold text-gray-900 font-display uppercase tracking-tight truncate pr-4">{event.title}</h4>
+                                        <div className="flex flex-wrap gap-y-1 gap-x-3 mt-1.5 text-sm text-gray-500 font-medium">
+                                            <span className="flex items-center"><Calendar className="w-3.5 h-3.5 mr-1" />{new Date(event.date).toLocaleDateString('pt-BR')}</span>
+                                            <span className="text-gray-300">|</span>
                                             <span>{event.location}</span>
-                                            <span>•</span>
-                                            <span className="text-pickle-700 font-medium">{event.category}</span>
+                                            <span className="text-gray-300">|</span>
+                                            <span className="text-pickle-700">{event.category}</span>
                                         </div>
                                         <div className="flex items-center mt-3 gap-2">
-                                             <div className="flex items-center text-xs font-medium text-gray-600 bg-gray-100 px-2 py-1 rounded-md">
+                                             <div className="flex items-center text-xs font-bold text-gray-600 bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-md">
                                                 <ImageIcon className="w-3 h-3 mr-1.5" />
                                                 {event.totalPhotos || 0} fotos
                                             </div>
-                                            {event.organizer && (
-                                                <div className="flex items-center text-xs font-medium text-gray-600 bg-gray-100 px-2 py-1 rounded-md">
-                                                    <User className="w-3 h-3 mr-1.5" />
-                                                    {event.organizer}
-                                                </div>
-                                            )}
                                         </div>
                                     </div>
                                 </div>
                                 
-                                <div className="flex items-center gap-3 w-full md:w-auto">
+                                <div className="flex items-center gap-2 w-full md:w-auto mt-2 md:mt-0">
                                     <button 
                                         onClick={() => {
                                             setUploadEventId(event.id);
                                             fileInputRef.current?.click();
                                         }}
                                         disabled={loading}
-                                        className="flex-1 md:flex-none items-center justify-center px-5 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-pickle hover:text-brand-dark transition-all text-sm font-bold shadow-sm flex gap-2"
+                                        className="flex-1 md:flex-none items-center justify-center px-4 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-pickle hover:text-brand-dark transition-all text-sm font-bold shadow-sm flex gap-2 border border-gray-900"
                                     >
                                         <Upload className="w-4 h-4" />
-                                        Upload Fotos
+                                        Upload
                                     </button>
+                                    
+                                    <button 
+                                        onClick={() => openEditModal(event)}
+                                        className="p-2.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-gray-200 hover:border-blue-200 bg-white"
+                                        title="Editar Evento"
+                                    >
+                                        <Pencil className="w-5 h-5" />
+                                    </button>
+
                                     <button 
                                         onClick={() => handleDeleteEvent(event.id)}
-                                        className="p-2.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100"
+                                        className="p-2.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-gray-200 hover:border-red-200 bg-white"
                                         title="Excluir Evento"
                                     >
                                         <Trash2 className="w-5 h-5" />
@@ -297,12 +347,13 @@ export const Admin: React.FC = () => {
                 </ul>
             )}
             {!loading && events.length === 0 && (
-                <div className="py-16 text-center">
-                    <div className="bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Plus className="w-8 h-8 text-gray-400" />
+                <div className="py-20 text-center">
+                    <div className="bg-gray-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 border border-gray-100">
+                        <Plus className="w-10 h-10 text-gray-300" />
                     </div>
-                    <p className="text-gray-500 font-medium">Nenhum evento criado.</p>
-                    <button onClick={() => setIsModalOpen(true)} className="text-pickle-600 font-bold text-sm mt-2 hover:underline">Começar agora</button>
+                    <p className="text-gray-900 font-bold text-lg">Nenhum evento encontrado</p>
+                    <p className="text-gray-500 text-sm mt-1">Crie o primeiro evento para começar a galeria.</p>
+                    <button onClick={openCreateModal} className="mt-6 text-pickle-600 font-bold text-sm hover:underline uppercase tracking-wide">Criar Novo Evento</button>
                 </div>
             )}
         </div>
@@ -318,21 +369,23 @@ export const Admin: React.FC = () => {
         onChange={handleFileSelect}
       />
 
-      {/* MODAL: Create Event (Enhanced) */}
+      {/* MODAL: Create/Edit Event */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm overflow-y-auto">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-[fadeIn_0.2s_ease-out] my-8">
-                <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm overflow-y-auto">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-[fadeIn_0.2s_ease-out] my-8 border border-gray-200">
+                <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50">
                     <div>
-                        <h3 className="text-xl font-bold text-gray-900 font-display uppercase tracking-wide">Novo Evento</h3>
-                        <p className="text-xs text-gray-500">Preencha os detalhes do campeonato</p>
+                        <h3 className="text-xl font-bold text-gray-900 font-display uppercase tracking-wide">
+                            {editingId ? 'Editar Evento' : 'Novo Evento'}
+                        </h3>
+                        <p className="text-xs text-gray-500">{editingId ? 'Atualize as informações do campeonato' : 'Preencha os detalhes do campeonato'}</p>
                     </div>
-                    <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 bg-white p-2 rounded-full shadow-sm hover:shadow-md transition-all">
+                    <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 bg-white p-2 rounded-full shadow-sm hover:shadow-md transition-all border border-gray-100">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
                 
-                <form onSubmit={handleCreateEvent} className="p-8 space-y-6">
+                <form onSubmit={handleSaveEvent} className="p-8 space-y-6">
                     {/* Basic Info */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="col-span-2">
@@ -455,7 +508,7 @@ export const Admin: React.FC = () => {
                             disabled={loading}
                             className="w-full bg-brand-dark text-white py-4 rounded-xl hover:bg-pickle hover:text-brand-dark transition-all font-bold shadow-lg uppercase tracking-wider text-sm transform active:scale-[0.99]"
                         >
-                            {loading ? 'Salvando...' : 'Criar Evento Oficial'}
+                            {loading ? 'Processando...' : (editingId ? 'Salvar Alterações' : 'Criar Evento Oficial')}
                         </button>
                     </div>
                 </form>
@@ -463,7 +516,7 @@ export const Admin: React.FC = () => {
         </div>
       )}
 
-      {/* MODAL: Photo Upload Staging (New Feature) */}
+      {/* MODAL: Photo Upload Staging */}
       {isUploadModalOpen && (
         <div className="fixed inset-0 z-[70] flex flex-col bg-white">
             {/* Header */}

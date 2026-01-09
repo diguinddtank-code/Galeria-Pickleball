@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, MapPin, ImageIcon, ArrowRight } from 'lucide-react';
+import { Calendar, MapPin, ImageIcon, ArrowRight, Camera } from 'lucide-react';
 import { dataService } from '../services/dataService';
 import { PickleballEvent } from '../types';
 import { Hero } from '../components/Hero';
@@ -59,7 +59,7 @@ export const Home: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 relative z-20">
         <div className="flex items-center justify-between mb-8 px-2">
             <h2 className="text-3xl font-display font-bold text-gray-900 flex items-center uppercase tracking-tight">
-               Últimos Eventos
+               Coberturas Recentes
             </h2>
         </div>
         
@@ -68,7 +68,7 @@ export const Home: React.FC = () => {
             <Link 
               key={event.id} 
               to={`/event/${event.id}`}
-              className="group bg-white rounded-2xl shadow-xl shadow-gray-200/50 hover:shadow-2xl hover:shadow-pickle-500/10 hover:-translate-y-2 transition-all duration-300 overflow-hidden flex flex-col h-full border border-gray-100"
+              className="group bg-white rounded-2xl shadow-xl shadow-gray-200/50 hover:shadow-2xl hover:shadow-gray-300 hover:-translate-y-2 transition-all duration-300 overflow-hidden flex flex-col h-full border border-gray-100"
             >
               {/* Card Image */}
               <div className="relative h-64 overflow-hidden">
@@ -81,7 +81,7 @@ export const Home: React.FC = () => {
                 
                 {/* Date Badge */}
                 <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-md px-4 py-2 rounded-xl shadow-lg flex flex-col items-center min-w-[70px] border border-gray-100">
-                    <span className="text-xs font-bold text-pickle-600 uppercase tracking-wider">
+                    <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">
                         {new Date(event.date).toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')}
                     </span>
                     <span className="text-2xl font-black text-gray-900 leading-none mt-0.5 font-display">
@@ -93,16 +93,16 @@ export const Home: React.FC = () => {
               {/* Card Content */}
               <div className="p-7 flex-1 flex flex-col relative">
                 {/* Floating Paddle Icon Decorative */}
-                <div className="absolute -top-6 right-6 bg-pickle text-brand-dark p-3 rounded-full shadow-lg transform rotate-12 group-hover:rotate-45 transition-transform duration-300 border-4 border-white">
-                    <ImageIcon className="w-5 h-5" />
+                <div className="absolute -top-6 right-6 bg-brand-dark text-pickle p-3 rounded-full shadow-lg transform rotate-12 group-hover:rotate-0 transition-transform duration-300 border-4 border-white">
+                    <Camera className="w-5 h-5" />
                 </div>
 
-                <h3 className="text-xl font-bold font-display text-gray-900 mb-3 group-hover:text-pickle-600 transition-colors line-clamp-2 leading-tight uppercase">
+                <h3 className="text-xl font-bold font-display text-gray-900 mb-3 group-hover:text-gray-600 transition-colors line-clamp-2 leading-tight uppercase">
                   {event.title}
                 </h3>
                 
                 <div className="flex items-center text-sm text-gray-500 mb-5 font-medium">
-                  <MapPin className="w-4 h-4 mr-1.5 text-pickle-500 fill-pickle-50" />
+                  <MapPin className="w-4 h-4 mr-1.5 text-pickle-600" />
                   {event.location}
                 </div>
 
@@ -114,8 +114,8 @@ export const Home: React.FC = () => {
                   <div className="flex items-center text-gray-400 text-xs font-bold uppercase tracking-wider">
                     {event.totalPhotos || 0} fotos
                   </div>
-                  <span className="flex items-center text-pickle-600 font-bold text-sm hover:underline decoration-2 underline-offset-4">
-                    Acessar Álbum
+                  <span className="flex items-center text-gray-900 font-bold text-sm hover:underline decoration-2 underline-offset-4 decoration-pickle">
+                    Ver Fotos
                     <ArrowRight className="w-4 h-4 ml-1.5 transform group-hover:translate-x-1 transition-transform" />
                   </span>
                 </div>
