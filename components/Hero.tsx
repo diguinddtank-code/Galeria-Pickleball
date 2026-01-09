@@ -21,7 +21,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
             className="w-full h-full"
         >
             <img 
-                src="https://images.unsplash.com/photo-1626244422204-62927051a24d?q=80&w=2000" 
+                src="https://images.unsplash.com/photo-1659318006095-4d44845f3a1b?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8cGlja2xlYmFsbHxlbnwwfHwwfHx8MA%3D%3D" 
                 alt="Pickleball Court Background" 
                 className="w-full h-full object-cover filter brightness-[0.7] contrast-[1.1]" 
             />

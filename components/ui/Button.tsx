@@ -11,7 +11,8 @@ export const Button: React.FC<ButtonProps> = ({
   className = '', 
   ...props 
 }) => {
-  const baseStyles = "inline-flex items-center px-8 py-4 rounded-full font-bold uppercase tracking-wider text-sm transition-all duration-300 transform active:scale-95";
+  // Added 'justify-center' to centering content horizontally
+  const baseStyles = "inline-flex items-center justify-center px-8 py-4 rounded-full font-bold uppercase tracking-wider text-sm transition-all duration-300 transform active:scale-95";
   
   const variants = {
     primary: "bg-pickle text-brand-dark hover:bg-white hover:text-brand-dark hover:shadow-[0_0_20px_rgba(204,255,0,0.4)]",
