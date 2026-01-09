@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShoppingCart, X, Trash2, Check, ChevronRight, AlertCircle, Camera } from 'lucide-react';
+import { ShoppingCart, X, Trash2, Check, ChevronRight, AlertCircle, Camera, MessageCircle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
 const WHATSAPP_NUMBER = "5531993430851";
@@ -163,16 +163,21 @@ Poderia me enviar a chave PIX?`;
 
            <button 
              onClick={handleCheckout}
-             className="w-full bg-brand-dark text-white py-4 rounded-xl font-bold uppercase tracking-wider hover:bg-pickle hover:text-brand-dark transition-all shadow-xl active:scale-[0.98] flex justify-center items-center group relative overflow-hidden"
+             className="w-full bg-[#25D366] hover:bg-[#128c7e] text-white py-4 px-6 rounded-xl font-bold uppercase tracking-wider transition-all shadow-[0_4px_14px_0_rgba(37,211,102,0.39)] hover:shadow-[0_6px_20px_rgba(37,211,102,0.23)] hover:-translate-y-1 active:scale-[0.98] flex justify-between items-center group"
            >
-             <span className="relative z-10 flex items-center">
-                 Receber Fotos em Alta
-                 <ChevronRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-             </span>
-             <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+             <div className="flex items-center gap-3">
+                 <div className="bg-white/20 p-2 rounded-full">
+                    <MessageCircle className="w-6 h-6 fill-white stroke-none" />
+                 </div>
+                 <div className="flex flex-col items-start text-left">
+                     <span className="text-[10px] font-medium opacity-90">Enviar pedido via WhatsApp</span>
+                     <span className="text-sm md:text-base font-black leading-none mt-0.5">Baixar Fotos em Alta</span>
+                 </div>
+             </div>
+             <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
            </button>
            <p className="text-center text-[10px] text-gray-400 mt-3 flex items-center justify-center">
-             <Check className="w-3 h-3 mr-1 text-green-500" /> Compra segura via WhatsApp e PIX
+             <Check className="w-3 h-3 mr-1 text-green-500" /> Entrega imediata após confirmação PIX
            </p>
         </div>
       </div>
