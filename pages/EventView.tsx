@@ -94,29 +94,30 @@ const ImageCard: React.FC<ImageCardProps> = ({ photo, onClick, index }) => {
             </div>
         )}
 
-        <div className={`absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${added ? 'hidden' : ''}`}>
-             <div className="bg-black/50 backdrop-blur-sm p-4 rounded-full border border-white/20 transform scale-90 group-hover:scale-100 transition-transform">
-                <Lock className="w-6 h-6 text-white" />
+        {/* Lock Icon - Always visible on mobile if not added, hover on desktop */}
+        <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${added ? 'hidden' : 'opacity-100 md:opacity-0 md:group-hover:opacity-100'}`}>
+             <div className="bg-black/40 md:bg-black/50 backdrop-blur-sm p-3 md:p-4 rounded-full border border-white/20 transform scale-90 group-hover:scale-100 transition-transform">
+                <Lock className="w-5 h-5 md:w-6 md:h-6 text-white" />
              </div>
         </div>
       </div>
       
-      {/* Overlay Premium Hover */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
-         <div className="flex justify-between items-end translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+      {/* Overlay Premium Hover - Always visible on mobile, hover on desktop */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 md:p-4">
+         <div className="flex justify-between items-end transform translate-y-0 md:translate-y-4 md:group-hover:translate-y-0 transition-transform duration-300">
              <div className="flex flex-col">
-                <span className="text-pickle text-[10px] font-bold uppercase tracking-wider mb-0.5">Alta Resolução</span>
-                <span className="text-white font-display text-lg tracking-wide leading-none">{photo.caption || 'Foto Premium'}</span>
+                <span className="text-pickle text-[10px] font-bold uppercase tracking-wider mb-0.5 hidden md:block">Alta Resolução</span>
+                <span className="text-white font-display text-sm md:text-lg tracking-wide leading-none">{photo.caption || 'Foto Premium'}</span>
              </div>
              
              <button 
                 onClick={toggleCart}
-                className={`px-4 py-2 rounded-full font-bold text-[10px] uppercase shadow-lg flex items-center transition-all transform hover:scale-105 active:scale-95 ${
+                className={`px-3 py-2 md:px-4 md:py-2 rounded-full font-bold text-[10px] uppercase shadow-lg flex items-center transition-all transform hover:scale-105 active:scale-95 ${
                     added ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-pickle text-brand-dark hover:bg-white'
                 }`}
              >
-                {added ? <Trash2 className="w-3 h-3 mr-1.5" /> : <Plus className="w-3 h-3 mr-1.5" />}
-                {added ? 'Remover' : 'Quero Essa'}
+                {added ? <Trash2 className="w-3 h-3 md:mr-1.5" /> : <Plus className="w-3 h-3 md:mr-1.5" />}
+                <span className="md:inline">{added ? 'Remover' : 'Quero Essa'}</span>
              </button>
          </div>
       </div>
