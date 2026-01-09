@@ -107,6 +107,18 @@ export const dataService = {
     }
   },
 
+  // Nova função para upload da imagem de capa
+  uploadCoverImage: async (file: File): Promise<string> => {
+    try {
+      const fileRef = ref(storage, `covers/${Date.now()}_${file.name}`);
+      await uploadBytes(fileRef, file);
+      return await getDownloadURL(fileRef);
+    } catch (error) {
+      console.error("Error uploading cover image:", error);
+      throw error;
+    }
+  },
+
   uploadPhotos: async (eventId: string, drafts: PhotoUploadDraft[]): Promise<void> => {
     try {
       const uploadPromises = drafts.map(async (draft) => {

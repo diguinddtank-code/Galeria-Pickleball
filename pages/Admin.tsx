@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Upload, Trash2, X, Image as ImageIcon, Check, Tag, User, Clock, Pencil, LayoutDashboard, Calendar } from 'lucide-react';
+import { Plus, Upload, Trash2, X, Image as ImageIcon, Check, Tag, User, Clock, Pencil, LayoutDashboard, Calendar, Camera } from 'lucide-react';
 import { dataService } from '../services/dataService';
 import { PickleballEvent, PhotoUploadDraft } from '../types';
 import { AdminChart } from '../components/AdminChart';
@@ -30,7 +30,12 @@ export const Admin: React.FC = () => {
     status: 'completed',
     tags: []
   });
-  const [tagsInput, setTagsInput] = useState(''); 
+  const [tagsInput, setTagsInput] = useState('');
+  
+  // Cover Image State
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
   
   // Photo Upload State
   const [uploadEventId, setUploadEventId] = useState<string | null>(null);
@@ -74,6 +79,8 @@ export const Admin: React.FC = () => {
         category: event.category,
         status: event.status,
     });
+    setCoverPreview(event.coverImage); // Set existing image as preview
+    setCoverFile(null);
     setTagsInput(event.tags ? event.tags.join(', ') : '');
     setIsModalOpen(true);
   };
@@ -90,8 +97,18 @@ export const Admin: React.FC = () => {
         category: '', 
         status: 'completed' 
     });
+    setCoverPreview(null);
+    setCoverFile(null);
     setTagsInput('');
     setIsModalOpen(true);
+  };
+
+  const handleCoverSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+        const file = e.target.files[0];
+        setCoverFile(file);
+        setCoverPreview(URL.createObjectURL(file));
+    }
   };
 
   const handleSaveEvent = async (e: React.FormEvent) => {
@@ -103,19 +120,29 @@ export const Admin: React.FC = () => {
     // Process tags
     const processedTags = tagsInput.split(',').map(t => t.trim()).filter(t => t !== '');
 
-    const eventData = {
-        title: newEvent.title,
-        date: newEvent.date,
-        location: newEvent.location,
-        description: newEvent.description || '',
-        organizer: newEvent.organizer || 'PickleballBH',
-        category: newEvent.category || 'Geral',
-        status: newEvent.status || 'completed',
-        tags: processedTags,
-        coverImage: newEvent.coverImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(newEvent.title || 'Event')}&background=CCFF00&color=0f172a&size=800`
-    };
-
     try {
+        let finalCoverUrl = newEvent.coverImage;
+
+        // Upload cover if a new file exists
+        if (coverFile) {
+            finalCoverUrl = await dataService.uploadCoverImage(coverFile);
+        } else if (!finalCoverUrl) {
+            // Placeholder if no image provided at all
+            finalCoverUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(newEvent.title || 'Event')}&background=CCFF00&color=0f172a&size=800`;
+        }
+
+        const eventData = {
+            title: newEvent.title,
+            date: newEvent.date,
+            location: newEvent.location,
+            description: newEvent.description || '',
+            organizer: newEvent.organizer || 'PickleballBH',
+            category: newEvent.category || 'Geral',
+            status: newEvent.status || 'completed',
+            tags: processedTags,
+            coverImage: finalCoverUrl
+        };
+
         if (editingId) {
             await dataService.updateEvent(editingId, eventData);
         } else {
@@ -359,7 +386,7 @@ export const Admin: React.FC = () => {
         </div>
       </div>
 
-      {/* Hidden File Input */}
+      {/* Hidden File Input for Batch Upload */}
       <input 
         type="file" 
         multiple 
@@ -368,150 +395,180 @@ export const Admin: React.FC = () => {
         className="hidden"
         onChange={handleFileSelect}
       />
+      
+      {/* Hidden Input for Cover Image */}
+      <input 
+        type="file" 
+        accept="image/*"
+        ref={coverInputRef}
+        className="hidden"
+        onChange={handleCoverSelect}
+      />
 
-      {/* MODAL: Create/Edit Event */}
+      {/* MODAL: Create/Edit Event - RESPONSIVE FIX */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm overflow-y-auto">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-[fadeIn_0.2s_ease-out] my-8 border border-gray-200">
-                <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh] border border-gray-200 animate-[fadeIn_0.2s_ease-out]">
+                {/* Modal Header */}
+                <div className="flex-shrink-0 flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50 rounded-t-2xl">
                     <div>
                         <h3 className="text-xl font-bold text-gray-900 font-display uppercase tracking-wide">
                             {editingId ? 'Editar Evento' : 'Novo Evento'}
                         </h3>
-                        <p className="text-xs text-gray-500">{editingId ? 'Atualize as informações do campeonato' : 'Preencha os detalhes do campeonato'}</p>
+                        <p className="text-xs text-gray-500">{editingId ? 'Atualize as informações' : 'Preencha os detalhes'}</p>
                     </div>
                     <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 bg-white p-2 rounded-full shadow-sm hover:shadow-md transition-all border border-gray-100">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
                 
-                <form onSubmit={handleSaveEvent} className="p-8 space-y-6">
-                    {/* Basic Info */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Modal Content - Scrollable */}
+                <div className="overflow-y-auto p-6 md:p-8 space-y-6">
+                    <form id="eventForm" onSubmit={handleSaveEvent} className="space-y-6">
+                        {/* Cover Image Upload Area */}
                         <div className="col-span-2">
-                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Nome do Evento</label>
-                            <input 
-                                required
-                                type="text" 
-                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pickle focus:border-transparent focus:bg-white transition-all outline-none font-medium"
-                                value={newEvent.title}
-                                onChange={e => setNewEvent({...newEvent, title: e.target.value})}
-                                placeholder="Ex: Super8 Open 2024"
-                            />
+                             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Capa do Evento</label>
+                             <div 
+                                onClick={() => coverInputRef.current?.click()}
+                                className={`relative w-full h-48 rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all overflow-hidden group ${coverPreview ? 'border-pickle-500 bg-gray-900' : 'border-gray-300 bg-gray-50 hover:bg-gray-100 hover:border-gray-400'}`}
+                             >
+                                {coverPreview ? (
+                                    <>
+                                        <img src={coverPreview} alt="Cover Preview" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-opacity" />
+                                        <div className="relative z-10 flex flex-col items-center text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <Camera className="w-8 h-8 mb-2 drop-shadow-md" />
+                                            <span className="text-xs font-bold uppercase tracking-wider shadow-black drop-shadow-md">Trocar Imagem</span>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="p-3 bg-white rounded-full shadow-sm mb-3">
+                                            <ImageIcon className="w-6 h-6 text-gray-400" />
+                                        </div>
+                                        <p className="text-sm font-medium text-gray-600">Toque para adicionar capa</p>
+                                        <p className="text-[10px] text-gray-400 mt-1">Recomendado: 1200x600</p>
+                                    </>
+                                )}
+                             </div>
                         </div>
 
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Data</label>
-                            <input 
-                                required
-                                type="date" 
-                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pickle focus:border-transparent focus:bg-white transition-all outline-none"
-                                value={newEvent.date}
-                                onChange={e => setNewEvent({...newEvent, date: e.target.value})}
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Status</label>
-                            <select 
-                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pickle focus:border-transparent focus:bg-white transition-all outline-none"
-                                value={newEvent.status}
-                                onChange={e => setNewEvent({...newEvent, status: e.target.value as any})}
-                            >
-                                <option value="upcoming">Em Breve</option>
-                                <option value="live">Ao Vivo</option>
-                                <option value="completed">Finalizado</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* Details */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="md:col-span-1">
-                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Categoria</label>
-                            <input 
-                                type="text" 
-                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pickle focus:border-transparent focus:bg-white transition-all outline-none"
-                                value={newEvent.category}
-                                onChange={e => setNewEvent({...newEvent, category: e.target.value})}
-                                placeholder="Ex: Open / 50+"
-                            />
-                        </div>
-                        <div className="md:col-span-2">
-                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Local</label>
-                            <div className="relative">
+                        {/* Basic Info */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="col-span-1 md:col-span-2">
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Nome do Evento</label>
                                 <input 
                                     required
                                     type="text" 
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pickle focus:border-transparent focus:bg-white transition-all outline-none pl-10"
-                                    value={newEvent.location}
-                                    onChange={e => setNewEvent({...newEvent, location: e.target.value})}
-                                    placeholder="Ex: Arena BH"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pickle focus:border-transparent focus:bg-white transition-all outline-none font-medium"
+                                    value={newEvent.title}
+                                    onChange={e => setNewEvent({...newEvent, title: e.target.value})}
+                                    placeholder="Ex: Super8 Open 2024"
                                 />
-                                <div className="absolute left-3 top-3.5 text-gray-400">
-                                    <ImageIcon className="w-5 h-5" /> 
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Data</label>
+                                <input 
+                                    required
+                                    type="date" 
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pickle focus:border-transparent focus:bg-white transition-all outline-none"
+                                    value={newEvent.date}
+                                    onChange={e => setNewEvent({...newEvent, date: e.target.value})}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Status</label>
+                                <select 
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pickle focus:border-transparent focus:bg-white transition-all outline-none"
+                                    value={newEvent.status}
+                                    onChange={e => setNewEvent({...newEvent, status: e.target.value as any})}
+                                >
+                                    <option value="upcoming">Em Breve</option>
+                                    <option value="live">Ao Vivo</option>
+                                    <option value="completed">Finalizado</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Details */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Categoria</label>
+                                <input 
+                                    type="text" 
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pickle focus:border-transparent focus:bg-white transition-all outline-none"
+                                    value={newEvent.category}
+                                    onChange={e => setNewEvent({...newEvent, category: e.target.value})}
+                                    placeholder="Ex: Open / 50+"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Local</label>
+                                <div className="relative">
+                                    <input 
+                                        required
+                                        type="text" 
+                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pickle focus:border-transparent focus:bg-white transition-all outline-none pl-10"
+                                        value={newEvent.location}
+                                        onChange={e => setNewEvent({...newEvent, location: e.target.value})}
+                                        placeholder="Ex: Arena BH"
+                                    />
+                                    <div className="absolute left-3 top-3.5 text-gray-400">
+                                        <ImageIcon className="w-5 h-5" /> 
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Organizador</label>
-                            <input 
-                                type="text" 
-                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pickle focus:border-transparent focus:bg-white transition-all outline-none"
-                                value={newEvent.organizer}
-                                onChange={e => setNewEvent({...newEvent, organizer: e.target.value})}
-                                placeholder="Ex: PickleballBH"
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Organizador</label>
+                                <input 
+                                    type="text" 
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pickle focus:border-transparent focus:bg-white transition-all outline-none"
+                                    value={newEvent.organizer}
+                                    onChange={e => setNewEvent({...newEvent, organizer: e.target.value})}
+                                    placeholder="Ex: PickleballBH"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Tags</label>
+                                <input 
+                                    type="text" 
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pickle focus:border-transparent focus:bg-white transition-all outline-none"
+                                    value={tagsInput}
+                                    onChange={e => setTagsInput(e.target.value)}
+                                    placeholder="João, Maria, Final..."
+                                />
+                            </div>
+                        </div>
+
+                        <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                            <div className="flex justify-between items-center mb-2">
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Descrição</label>
+                            </div>
+                            <textarea 
+                                rows={3}
+                                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-pickle focus:border-transparent transition-all outline-none text-sm leading-relaxed"
+                                value={newEvent.description}
+                                onChange={e => setNewEvent({...newEvent, description: e.target.value})}
+                                placeholder="Detalhes emocionantes sobre o evento..."
                             />
                         </div>
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Tags do Evento</label>
-                            <input 
-                                type="text" 
-                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pickle focus:border-transparent focus:bg-white transition-all outline-none"
-                                value={tagsInput}
-                                onChange={e => setTagsInput(e.target.value)}
-                                placeholder="Separe por vírgula: final, ouro, ..."
-                            />
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">URL da Capa</label>
-                        <input 
-                            type="text" 
-                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pickle focus:border-transparent focus:bg-white transition-all outline-none font-mono text-sm"
-                            value={newEvent.coverImage}
-                            onChange={e => setNewEvent({...newEvent, coverImage: e.target.value})}
-                            placeholder="https://..."
-                        />
-                        <p className="text-[10px] text-gray-400 mt-1.5 ml-1">Deixe em branco para gerar capa automática.</p>
-                    </div>
+                    </form>
+                </div>
 
-                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                        <div className="flex justify-between items-center mb-2">
-                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Descrição</label>
-                        </div>
-                        <textarea 
-                            rows={3}
-                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-pickle focus:border-transparent transition-all outline-none text-sm leading-relaxed"
-                            value={newEvent.description}
-                            onChange={e => setNewEvent({...newEvent, description: e.target.value})}
-                            placeholder="Detalhes emocionantes sobre o evento..."
-                        />
-                    </div>
-
-                    <div className="pt-4 border-t border-gray-100">
-                        <button 
-                            type="submit" 
-                            disabled={loading}
-                            className="w-full bg-brand-dark text-white py-4 rounded-xl hover:bg-pickle hover:text-brand-dark transition-all font-bold shadow-lg uppercase tracking-wider text-sm transform active:scale-[0.99]"
-                        >
-                            {loading ? 'Processando...' : (editingId ? 'Salvar Alterações' : 'Criar Evento Oficial')}
-                        </button>
-                    </div>
-                </form>
+                {/* Modal Footer - Fixed at bottom */}
+                <div className="flex-shrink-0 p-6 border-t border-gray-100 bg-white rounded-b-2xl">
+                    <button 
+                        form="eventForm"
+                        type="submit" 
+                        disabled={loading}
+                        className="w-full bg-brand-dark text-white py-4 rounded-xl hover:bg-pickle hover:text-brand-dark transition-all font-bold shadow-lg uppercase tracking-wider text-sm transform active:scale-[0.99]"
+                    >
+                        {loading ? 'Salvando...' : (editingId ? 'Salvar Alterações' : 'Criar Evento Oficial')}
+                    </button>
+                </div>
             </div>
         </div>
       )}
