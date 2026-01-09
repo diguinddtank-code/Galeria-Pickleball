@@ -1,11 +1,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Calendar, MapPin, ShoppingCart, Share2, X, ChevronLeft, ChevronRight, Filter, Lock, Check } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, ShoppingCart, Share2, X, ChevronLeft, ChevronRight, Filter, Lock, Check, Plus, Trash2, Download, Zap } from 'lucide-react';
 import { dataService } from '../services/dataService';
 import { PickleballEvent, Photo } from '../types';
-
-// CONFIGURAÇÃO DO WHATSAPP DA AGÊNCIA
-const WHATSAPP_NUMBER = "5531993430851"; 
+import { useCart } from '../context/CartContext';
 
 // Custom Animated Pickleball SVG Component
 const PickleballIcon = ({ className = "w-12 h-12" }: { className?: string }) => (
@@ -45,12 +43,24 @@ interface ImageCardProps {
 
 const ImageCard: React.FC<ImageCardProps> = ({ photo, onClick, index }) => {
   const [isLoaded, setIsLoaded] = useState(false);
+  const { isInCart, addItem, removeItem } = useCart();
+  const added = isInCart(photo.id);
+  const displayId = photo.displayId || photo.id.substring(0, 5).toUpperCase();
+
+  const toggleCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (added) {
+        removeItem(photo.id);
+    } else {
+        addItem(photo);
+    }
+  };
 
   return (
     <div 
-      className={`break-inside-avoid mb-6 relative group cursor-pointer rounded-sm overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 ease-out transform hover:-translate-y-1 ${
+      className={`break-inside-avoid mb-6 relative group cursor-pointer rounded-lg overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 ease-out transform hover:-translate-y-1 ${
         isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
-      }`}
+      } ${added ? 'ring-4 ring-pickle shadow-[0_0_20px_rgba(204,255,0,0.3)]' : ''}`}
       style={{ transitionDelay: `${(index % 12) * 50}ms` }}
       onClick={onClick}
       onContextMenu={(e) => e.preventDefault()} // Disable right click
@@ -69,21 +79,45 @@ const ImageCard: React.FC<ImageCardProps> = ({ photo, onClick, index }) => {
         />
         {/* Visual Watermark CSS Overlay */}
         <div className="absolute inset-0 bg-[url('https://i.imgur.com/KFvjnX6.jpeg')] bg-repeat opacity-20 bg-[length:150px_auto] mix-blend-overlay pointer-events-none"></div>
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-             <div className="bg-black/50 backdrop-blur-sm p-4 rounded-full border border-white/20">
+        
+        {/* Short ID Badge */}
+        <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-[10px] font-mono text-white/80 opacity-0 group-hover:opacity-100 transition-opacity">
+            #{displayId}
+        </div>
+
+        {/* Added Overlay Indicator */}
+        {added && (
+            <div className="absolute inset-0 bg-pickle/30 backdrop-blur-[1px] flex items-center justify-center animate-[fadeIn_0.2s]">
+                <div className="bg-brand-dark rounded-full p-3 shadow-xl transform scale-110">
+                    <Check className="w-8 h-8 text-pickle" />
+                </div>
+            </div>
+        )}
+
+        <div className={`absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${added ? 'hidden' : ''}`}>
+             <div className="bg-black/50 backdrop-blur-sm p-4 rounded-full border border-white/20 transform scale-90 group-hover:scale-100 transition-transform">
                 <Lock className="w-6 h-6 text-white" />
              </div>
         </div>
       </div>
       
       {/* Overlay Premium Hover */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
+      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
          <div className="flex justify-between items-end translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-             <span className="text-white/80 text-xs font-medium uppercase tracking-wider">{photo.caption || `#${index + 1}`}</span>
-             <div className="bg-pickle text-brand-dark px-3 py-1.5 rounded-full font-bold text-[10px] uppercase shadow-lg flex items-center">
-                <ShoppingCart className="w-3 h-3 mr-1" />
-                Comprar
+             <div className="flex flex-col">
+                <span className="text-pickle text-[10px] font-bold uppercase tracking-wider mb-0.5">Alta Resolução</span>
+                <span className="text-white font-display text-lg tracking-wide leading-none">{photo.caption || 'Foto Premium'}</span>
              </div>
+             
+             <button 
+                onClick={toggleCart}
+                className={`px-4 py-2 rounded-full font-bold text-[10px] uppercase shadow-lg flex items-center transition-all transform hover:scale-105 active:scale-95 ${
+                    added ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-pickle text-brand-dark hover:bg-white'
+                }`}
+             >
+                {added ? <Trash2 className="w-3 h-3 mr-1.5" /> : <Plus className="w-3 h-3 mr-1.5" />}
+                {added ? 'Remover' : 'Quero Essa'}
+             </button>
          </div>
       </div>
     </div>
@@ -98,6 +132,9 @@ export const EventView: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [activeTag, setActiveTag] = useState<string>('All');
   const [filteredPhotos, setFilteredPhotos] = useState<Photo[]>([]);
+  
+  // Cart Hook
+  const { isInCart, addItem, removeItem } = useCart();
 
   useEffect(() => {
     const loadEvent = async () => {
@@ -174,18 +211,21 @@ export const EventView: React.FC = () => {
     }
   };
 
-  const handleBuyPhoto = (e: React.MouseEvent, photo: Photo) => {
+  const handleToggleCart = (e: React.MouseEvent, photo: Photo) => {
     e.stopPropagation();
-    // Build WhatsApp Message
-    const text = `Olá! Gostaria de comprar a foto ID: *${photo.id}* \nEvento: *${event?.title}* \nLink de referência: ${photo.url}`;
-    const encodedText = encodeURIComponent(text);
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodedText}`, '_blank');
+    if (isInCart(photo.id)) {
+        removeItem(photo.id);
+    } else {
+        addItem(photo);
+    }
   };
 
   if (loading) return <PickleballLoader />;
   if (!event) return <div className="min-h-screen flex items-center justify-center text-gray-500">Evento não encontrado.</div>;
 
   const selectedPhoto = selectedIndex !== null ? filteredPhotos[selectedIndex] : null;
+  const isSelectedInCart = selectedPhoto ? isInCart(selectedPhoto.id) : false;
+  const selectedDisplayId = selectedPhoto ? (selectedPhoto.displayId || selectedPhoto.id.substring(0, 5).toUpperCase()) : '';
 
   return (
     <div className="min-h-screen bg-gray-50 select-none"> {/* Prevent text selection globally */}
@@ -195,9 +235,9 @@ export const EventView: React.FC = () => {
           <img 
             src={event.coverImage} 
             alt="Cover" 
-            className="w-full h-full object-cover opacity-50 blur-[2px]"
+            className="w-full h-full object-cover opacity-40 blur-[2px]"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 to-black/60" />
+          <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/60 to-black/80" />
         </div>
         
         <div className="absolute top-24 left-0 w-full px-4 sm:px-6 lg:px-8 z-20">
@@ -225,8 +265,9 @@ export const EventView: React.FC = () => {
                             {event.location}
                         </div>
                          <span className="text-white/20">|</span>
-                        <div className="text-pickle font-bold">
-                            {event.totalPhotos || 0} Fotos Disponíveis
+                        <div className="text-pickle font-bold flex items-center">
+                            <Zap className="w-4 h-4 mr-1.5" />
+                            {event.totalPhotos || 0} Registros Oficiais
                         </div>
                     </div>
                     <p className="text-gray-400 max-w-2xl text-sm leading-relaxed border-l-2 border-pickle pl-4">
@@ -305,8 +346,11 @@ export const EventView: React.FC = () => {
             onClick={() => setSelectedIndex(null)}
         >
             <div className="absolute top-0 left-0 w-full p-6 flex justify-between items-center z-20 bg-gradient-to-b from-black/60 to-transparent">
-                <div className="text-white/80 text-sm font-medium tracking-wide">
-                    {selectedIndex !== null ? selectedIndex + 1 : 0} / {filteredPhotos.length}
+                <div className="flex flex-col">
+                    <div className="text-white/80 text-sm font-medium tracking-wide">
+                        {selectedIndex !== null ? selectedIndex + 1 : 0} / {filteredPhotos.length}
+                    </div>
+                    <div className="text-pickle font-mono text-xs mt-1">Ref: {selectedDisplayId}</div>
                 </div>
                 <button 
                     className="bg-white/10 hover:bg-white/20 text-white rounded-full p-2.5 backdrop-blur-md transition-all border border-white/10 hover:rotate-90"
@@ -348,14 +392,27 @@ export const EventView: React.FC = () => {
                 className="absolute bottom-0 w-full p-8 flex flex-col md:flex-row items-center justify-between gap-4 z-20 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none"
             >
                <div className="text-white/80 text-sm md:text-base font-medium text-center md:text-left">
+                  <span className="block text-pickle text-xs font-bold uppercase tracking-wider mb-1">Registro Exclusivo</span>
                   {selectedPhoto.caption || event?.title}
                </div>
 
                <button 
-                 onClick={(e) => handleBuyPhoto(e, selectedPhoto)}
-                 className="flex items-center bg-pickle text-brand-dark px-8 py-3 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-white transition-all shadow-lg pointer-events-auto hover:scale-105 active:scale-95"
+                 onClick={(e) => handleToggleCart(e, selectedPhoto)}
+                 className={`flex items-center px-8 py-4 rounded-full text-xs font-bold uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(0,0,0,0.5)] pointer-events-auto hover:scale-105 active:scale-95 ${
+                    isSelectedInCart 
+                    ? 'bg-red-500 text-white hover:bg-red-600 border border-red-400'
+                    : 'bg-pickle text-brand-dark hover:bg-white border-2 border-transparent hover:border-pickle'
+                 }`}
                >
-                 <ShoppingCart className="w-4 h-4 mr-2" /> Comprar Foto
+                 {isSelectedInCart ? (
+                    <>
+                        <Trash2 className="w-4 h-4 mr-2" /> Remover da Seleção
+                    </>
+                 ) : (
+                    <>
+                        <Download className="w-4 h-4 mr-2" /> Desbloquear Foto
+                    </>
+                 )}
                </button>
             </div>
             

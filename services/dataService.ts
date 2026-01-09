@@ -17,6 +17,16 @@ import { PickleballEvent, Photo, PhotoUploadDraft } from '../types';
 const EVENTS_COLLECTION = 'events';
 const AUTH_KEY = 'pb_is_admin';
 
+// Helper to generate short readable IDs (e.g., "K9X2P")
+const generateShortId = () => {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // No I, 1, O, 0 to avoid confusion
+  let result = '';
+  for (let i = 0; i < 5; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+};
+
 export const dataService = {
   getEvents: async (): Promise<PickleballEvent[]> => {
     try {
@@ -108,9 +118,13 @@ export const dataService = {
         // 2. Add to Firestore Subcollection with Metadata
         // Parse tags string into array
         const tagsArray = draft.tags.split(',').map(t => t.trim()).filter(t => t.length > 0);
+        
+        // Generate Short ID
+        const displayId = generateShortId();
 
         const photoData = {
           url,
+          displayId, // Store the short ID
           caption: draft.caption,
           tags: tagsArray,
           createdAt: Date.now()

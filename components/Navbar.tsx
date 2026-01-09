@@ -44,7 +44,7 @@ export const Navbar: React.FC = () => {
               <img 
                 src="https://i.imgur.com/KFvjnX6.jpeg" 
                 alt="Remaking Agency" 
-                className="h-10 md:h-12 w-auto rounded-lg shadow-lg group-hover:scale-105 transition-transform duration-300" 
+                className="h-10 md:h-12 w-auto group-hover:scale-105 transition-transform duration-300 mix-blend-screen" 
               />
               <div className="flex flex-col">
                  <span className="text-white font-display font-bold text-lg md:text-xl leading-none tracking-wide group-hover:text-gray-300 transition-colors shadow-black drop-shadow-lg uppercase">

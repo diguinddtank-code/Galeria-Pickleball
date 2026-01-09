@@ -1,5 +1,6 @@
 export interface Photo {
   id: string;
+  displayId?: string; // New short, readable ID (e.g., "A1B2C")
   url: string;
   caption?: string;
   tags?: string[];
