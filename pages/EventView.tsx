@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Calendar, MapPin, ShoppingCart, Share2, X, ChevronLeft, ChevronRight, Filter, Lock, Check, Plus, Trash2, Download, Zap, Image as ImageIcon, Sparkles, ShieldAlert, CreditCard } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Share2, X, ChevronLeft, ChevronRight, Filter, Check, Plus, Trash2, Zap, Image as ImageIcon, Sparkles, ShieldAlert } from 'lucide-react';
 import { dataService } from '../services/dataService';
 import { PickleballEvent, Photo } from '../types';
 import { useCart } from '../context/CartContext';
@@ -164,7 +164,7 @@ export const EventView: React.FC = () => {
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   
   // Cart Hook
-  const { isInCart, addItem, removeItem, itemsCount, discountPercent, openCart, total } = useCart();
+  const { isInCart, addItem, removeItem, itemsCount, openCart } = useCart();
 
   useEffect(() => {
     const loadEvent = async () => {
