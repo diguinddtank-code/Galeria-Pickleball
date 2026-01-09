@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Calendar, MapPin, ShoppingCart, Share2, X, ChevronLeft, ChevronRight, Filter, Lock, Check, Plus, Trash2, Download, Zap, Image as ImageIcon, Sparkles, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, ShoppingCart, Share2, X, ChevronLeft, ChevronRight, Filter, Lock, Check, Plus, Trash2, Download, Zap, Image as ImageIcon, Sparkles, ShieldAlert, CreditCard } from 'lucide-react';
 import { dataService } from '../services/dataService';
 import { PickleballEvent, Photo } from '../types';
 import { useCart } from '../context/CartContext';
@@ -25,9 +25,9 @@ const PickleballLoader = () => (
 
 // WATERMARK COMPONENT - Tiled Pattern for Security
 const WatermarkOverlay = () => (
-    <div className="absolute inset-0 z-10 pointer-events-none select-none overflow-hidden mix-blend-overlay opacity-50">
+    <div className="absolute inset-0 z-10 pointer-events-none select-none overflow-hidden mix-blend-overlay opacity-40">
         <div className="w-full h-full" style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='150' height='150' viewBox='0 0 150 150' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-weight='900' font-size='16' fill='white' text-anchor='middle' dominant-baseline='middle' transform='rotate(-45 75 75)'%3EREMAKING // PROVA%3C/text%3E%3C/svg%3E")`,
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='250' height='250' viewBox='0 0 250 250' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-weight='900' font-size='20' fill='white' text-anchor='middle' dominant-baseline='middle' transform='rotate(-45 125 125)'%3E@remakingagency%3C/text%3E%3C/svg%3E")`,
             backgroundRepeat: 'repeat'
         }}></div>
     </div>
@@ -132,11 +132,12 @@ export const EventView: React.FC = () => {
   const [activeTag, setActiveTag] = useState<string>('All');
   const [filteredPhotos, setFilteredPhotos] = useState<Photo[]>([]);
   
-  // Lightbox State
-  const [viewMode, setViewMode] = useState<'standard' | 'framed'>('standard');
+  // Swipe State
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
   
   // Cart Hook
-  const { isInCart, addItem, removeItem, itemsCount, discountPercent } = useCart();
+  const { isInCart, addItem, removeItem, itemsCount, discountPercent, openCart, total } = useCart();
 
   useEffect(() => {
     const loadEvent = async () => {
@@ -183,6 +184,31 @@ export const EventView: React.FC = () => {
     }
   }, [filteredPhotos, selectedIndex]);
 
+  // Swipe Logic
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    if (isLeftSwipe) {
+       handleNext();
+    }
+    if (isRightSwipe) {
+       handlePrev();
+    }
+  };
+
   // Preload next image for smooth browsing
   useEffect(() => {
     if (selectedIndex !== null && selectedIndex < filteredPhotos.length - 1) {
@@ -208,6 +234,27 @@ export const EventView: React.FC = () => {
         removeItem(photo.id);
     } else {
         addItem(photo);
+    }
+  };
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const shareData = {
+        title: event?.title || 'Galeria Remaking Agency',
+        text: 'Confira minhas fotos neste evento!',
+        url: window.location.href
+    };
+
+    if (navigator.share) {
+        try {
+            await navigator.share(shareData);
+        } catch (err) {
+            console.log(err);
+        }
+    } else {
+        setCopied(true);
+        navigator.clipboard.writeText(window.location.href);
+        setTimeout(() => setCopied(false), 2000);
     }
   };
 
@@ -326,6 +373,9 @@ export const EventView: React.FC = () => {
         <div 
             className="fixed inset-0 z-[60] flex items-center justify-center bg-brand-dark/95 backdrop-blur-xl transition-all duration-300 animate-[fadeIn_0.2s_ease-out]"
             onClick={() => setSelectedIndex(null)}
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
         >
             {/* Top Bar */}
             <div className="absolute top-0 left-0 w-full p-4 md:p-6 flex justify-between items-center z-20 bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
@@ -343,13 +393,13 @@ export const EventView: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-4 pointer-events-auto">
-                    {/* View Mode Toggle */}
+                    {/* Replaced 'Simulate Frame' with Share Button */}
                     <button 
-                        onClick={(e) => { e.stopPropagation(); setViewMode(prev => prev === 'standard' ? 'framed' : 'standard'); }}
-                        className={`hidden md:flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all border ${viewMode === 'framed' ? 'bg-white text-brand-dark border-white' : 'bg-black/40 text-gray-300 border-white/20 hover:border-white'}`}
+                        onClick={handleShare}
+                        className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all bg-white/10 text-white hover:bg-white/20 border border-white/20"
                     >
-                        <ImageIcon className="w-4 h-4" />
-                        {viewMode === 'framed' ? 'Modo Quadro' : 'Ver no Quadro'}
+                        {copied ? <Check className="w-4 h-4 text-green-400" /> : <Share2 className="w-4 h-4" />}
+                        <span className="hidden md:inline">{copied ? 'Copiado!' : 'Compartilhar'}</span>
                     </button>
 
                     <button 
@@ -363,16 +413,16 @@ export const EventView: React.FC = () => {
 
             {/* Navigation Arrows - Now Visible on Mobile too, just distinct style */}
             <button 
-                className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 p-2 md:p-4 rounded-full bg-black/30 hover:bg-white/10 text-white transition-all border border-white/5 hover:border-white/20 backdrop-blur-sm"
+                className="hidden md:block absolute left-4 top-1/2 -translate-y-1/2 z-20 p-4 rounded-full bg-black/30 hover:bg-white/10 text-white transition-all border border-white/5 hover:border-white/20 backdrop-blur-sm"
                 onClick={handlePrev}
             >
-                <ChevronLeft className="w-6 h-6 md:w-8 md:h-8" />
+                <ChevronLeft className="w-8 h-8" />
             </button>
             <button 
-                className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 p-2 md:p-4 rounded-full bg-black/30 hover:bg-white/10 text-white transition-all border border-white/5 hover:border-white/20 backdrop-blur-sm"
+                className="hidden md:block absolute right-4 top-1/2 -translate-y-1/2 z-20 p-4 rounded-full bg-black/30 hover:bg-white/10 text-white transition-all border border-white/5 hover:border-white/20 backdrop-blur-sm"
                 onClick={handleNext}
             >
-                <ChevronRight className="w-6 h-6 md:w-8 md:h-8" />
+                <ChevronRight className="w-8 h-8" />
             </button>
 
             {/* Main Content Area */}
@@ -381,53 +431,24 @@ export const EventView: React.FC = () => {
                 onClick={e => e.stopPropagation()}
                 onContextMenu={(e) => e.preventDefault()}
             >
-                {/* Standard View vs Framed View */}
-                {viewMode === 'standard' ? (
-                    <div className="relative max-w-full max-h-[70vh] md:max-h-[75vh] inline-block shadow-2xl overflow-hidden rounded-sm transition-all duration-500">
-                        {/* Protection Layer - Prevents dragging/right click visually */}
-                        <div className="absolute inset-0 z-20"></div>
+                <div className="relative max-w-full max-h-[70vh] md:max-h-[75vh] inline-block shadow-2xl overflow-hidden rounded-sm transition-all duration-500">
+                    {/* Protection Layer - Prevents dragging/right click visually */}
+                    <div className="absolute inset-0 z-20"></div>
 
-                        <img 
-                            key={selectedPhoto.id} // Forces re-render for animation on change
-                            src={selectedPhoto.url} 
-                            alt="Full View" 
-                            className={`max-w-full max-h-[70vh] md:max-h-[75vh] object-contain animate-[fadeIn_0.3s_ease-out] select-none pointer-events-none ${PREVIEW_QUALITY_CLASS}`} 
-                            onDragStart={(e) => e.preventDefault()}
-                        />
-                        {/* Always show Watermark */}
-                        <WatermarkOverlay />
-                    </div>
-                ) : (
-                    // Framed Simulator View
-                    <div className="relative animate-[fadeIn_0.5s_ease-out] transform scale-90 md:scale-100">
-                        {/* Wall Shadow & Texture Simulation */}
-                        <div className="absolute -inset-20 bg-gradient-to-br from-gray-800 to-gray-900 opacity-0 md:opacity-100 -z-10 rounded-xl"></div>
-                        
-                        {/* Physical Frame CSS */}
-                        <div className="relative border-[16px] border-black shadow-[0_20px_50px_rgba(0,0,0,0.8)] bg-white p-8 md:p-12">
-                             <div className="shadow-inner border border-gray-200 relative overflow-hidden">
-                                <img 
-                                    key={`frame-${selectedPhoto.id}`}
-                                    src={selectedPhoto.url} 
-                                    alt="Framed" 
-                                    className={`max-h-[50vh] object-contain block select-none pointer-events-none ${PREVIEW_QUALITY_CLASS}`}
-                                    onDragStart={(e) => e.preventDefault()}
-                                />
-                                {/* Always show Watermark */}
-                                <WatermarkOverlay />
-                             </div>
-                             {/* Reflection/Glass Glare */}
-                             <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-30"></div>
-                        </div>
-                        <div className="text-center mt-6 text-gray-400 font-display uppercase tracking-widest text-sm">
-                            Simulação de Impressão 30x40cm
-                        </div>
-                    </div>
-                )}
+                    <img 
+                        key={selectedPhoto.id} // Forces re-render for animation on change
+                        src={selectedPhoto.url} 
+                        alt="Full View" 
+                        className={`max-w-full max-h-[70vh] md:max-h-[75vh] object-contain animate-[fadeIn_0.3s_ease-out] select-none pointer-events-none ${PREVIEW_QUALITY_CLASS}`} 
+                        onDragStart={(e) => e.preventDefault()}
+                    />
+                    {/* Always show Watermark */}
+                    <WatermarkOverlay />
+                </div>
             </div>
 
             {/* Bottom Bar Controls & Upsell */}
-            <div className="absolute bottom-0 w-full z-30 bg-white/5 backdrop-blur-xl border-t border-white/10">
+            <div className="absolute bottom-0 w-full z-30 bg-white/5 backdrop-blur-xl border-t border-white/10" onClick={e => e.stopPropagation()}>
                
                {/* Progress Bar (Upsell) */}
                {itemsNeeded > 0 && (
@@ -442,7 +463,7 @@ export const EventView: React.FC = () => {
                    </div>
                )}
 
-               <div className="p-6 md:px-12 flex flex-col md:flex-row items-center justify-between gap-4">
+               <div className="p-4 md:px-12 md:py-6 flex flex-col md:flex-row items-center justify-between gap-4">
                     <div className="hidden md:block text-white/80 text-sm font-medium">
                         <span className="block text-pickle text-xs font-bold uppercase tracking-wider mb-1">
                              {isSelectedInCart ? 'Selecionada' : 'Disponível'}
@@ -450,39 +471,46 @@ export const EventView: React.FC = () => {
                         {selectedPhoto.caption || event?.title}
                     </div>
                     
-                    {/* Mobile: View Mode Toggle */}
-                    <button 
-                        onClick={(e) => { e.stopPropagation(); setViewMode(prev => prev === 'standard' ? 'framed' : 'standard'); }}
-                        className="md:hidden flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all border border-white/20 text-gray-300 mb-2"
-                    >
-                        <ImageIcon className="w-3 h-3" />
-                        {viewMode === 'framed' ? 'Sair do Modo Quadro' : 'Simular no Quadro'}
-                    </button>
+                    {/* Mobile: Share Button (replacing view mode) is in top bar now, so this space is clean */}
+                    <div className="md:hidden text-white/80 text-xs font-medium truncate max-w-[50%]">
+                        {selectedPhoto.caption || event?.title}
+                    </div>
 
-                    <button 
-                        onClick={(e) => handleToggleCart(e, selectedPhoto)}
-                        className={`w-full md:w-auto flex items-center justify-center px-10 py-4 rounded-full text-xs font-bold uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(0,0,0,0.5)] transform hover:scale-105 active:scale-95 ${
-                            isSelectedInCart 
-                            ? 'bg-red-500 text-white hover:bg-red-600 border border-red-400'
-                            : 'bg-pickle text-brand-dark hover:bg-white border-2 border-transparent hover:border-pickle'
-                        }`}
-                    >
-                        {isSelectedInCart ? (
-                            <>
-                                <Trash2 className="w-4 h-4 mr-2" /> Remover
-                            </>
-                        ) : (
-                            <>
-                                <Check className="w-4 h-4 mr-2" /> Eu Quero Essa
-                            </>
+                    <div className="flex gap-3 w-full md:w-auto">
+                        {/* New Quick Checkout Button - Only visible if items > 0 */}
+                        {itemsCount > 0 && (
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); openCart(); }}
+                                className="flex-1 md:flex-none flex items-center justify-center px-6 py-4 rounded-full text-xs font-bold uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(34,197,94,0.3)] bg-green-500 text-white hover:bg-green-400 border border-transparent transform hover:scale-105"
+                            >
+                                <Check className="w-4 h-4 mr-2" />
+                                <span className="hidden sm:inline">Finalizar Seleção</span>
+                                <span className="sm:hidden">Concluir</span>
+                            </button>
                         )}
-                    </button>
+
+                        <button 
+                            onClick={(e) => handleToggleCart(e, selectedPhoto)}
+                            className={`flex-1 md:flex-none md:min-w-[180px] flex items-center justify-center px-6 py-4 rounded-full text-xs font-bold uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(0,0,0,0.5)] transform active:scale-95 border-2 ${
+                                isSelectedInCart 
+                                ? 'bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white border-red-500'
+                                : 'bg-pickle text-brand-dark hover:bg-white border-transparent hover:border-pickle'
+                            }`}
+                        >
+                            {isSelectedInCart ? (
+                                <>
+                                    <Trash2 className="w-4 h-4 mr-2" /> Remover
+                                </>
+                            ) : (
+                                <>
+                                    <Check className="w-4 h-4 mr-2" /> Eu Quero Essa
+                                </>
+                            )}
+                        </button>
+                    </div>
                </div>
             </div>
-            
-            {/* Deprecated large click zones replaced by visible buttons, kept as fallback for edge/very large screens if needed, but safe to rely on buttons now */}
         </div>
       )}
     </div>
   );
-};
