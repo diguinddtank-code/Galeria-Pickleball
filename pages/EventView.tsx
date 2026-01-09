@@ -464,6 +464,16 @@ export const EventView: React.FC = () => {
                 onTouchMove={onTouchMove}
                 onTouchEnd={onTouchEnd}
             >
+                {/* Swipe Indicators (Mobile Only) */}
+                <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-2 md:hidden pointer-events-none z-40">
+                    <div className={`p-2 rounded-full bg-black/20 text-white/70 backdrop-blur-sm animate-pulse ${selectedIndex === 0 ? 'opacity-0' : 'opacity-100'}`}>
+                        <ChevronLeft className="w-6 h-6" />
+                    </div>
+                    <div className={`p-2 rounded-full bg-black/20 text-white/70 backdrop-blur-sm animate-pulse ${selectedIndex === filteredPhotos.length - 1 ? 'opacity-0' : 'opacity-100'}`}>
+                        <ChevronRight className="w-6 h-6" />
+                    </div>
+                </div>
+
                 <div className="relative w-full h-full max-w-[100vw] max-h-[70vh] md:max-h-[75vh] flex items-center justify-center">
                     <AnimatePresence initial={false} custom={direction} mode="popLayout">
                         <motion.div
@@ -522,13 +532,27 @@ export const EventView: React.FC = () => {
                         {/* Mobile Actions Grid */}
                         <div className="grid grid-cols-2 md:flex gap-3 w-full md:w-auto">
                             
+                            {/* 1. Finalizar Button (Left / Secondary visual weight) */}
+                             {itemsCount > 0 ? (
+                                <button 
+                                    onClick={(e) => { e.stopPropagation(); openCart(); }}
+                                    className="col-span-1 md:flex-none flex items-center justify-center px-4 py-3.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all shadow-lg bg-green-500/90 text-white hover:bg-green-500 border border-green-500/50 backdrop-blur-md"
+                                >
+                                    <ShoppingBag className="w-4 h-4 mr-2" />
+                                    <span className="truncate">Finalizar ({itemsCount})</span>
+                                </button>
+                            ) : (
+                                <div className="hidden md:block w-0" />
+                            )}
+
+                            {/* 2. Eu Quero Essa Button (Right / Primary) */}
                             <button 
                                 onClick={(e) => handleToggleCart(e, selectedPhoto)}
                                 className={`col-span-1 md:flex-none md:min-w-[180px] flex items-center justify-center px-4 py-3.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all shadow-lg transform active:scale-95 border ${
                                     isSelectedInCart 
-                                    ? 'bg-red-500/10 text-red-400 border-red-500 hover:bg-red-500 hover:text-white'
+                                    ? 'bg-red-500 text-white border-red-500 hover:bg-red-600'
                                     : 'bg-pickle text-brand-dark border-pickle hover:bg-white hover:border-white'
-                                }`}
+                                } ${itemsCount === 0 ? 'col-span-2' : ''}`}
                             >
                                 {isSelectedInCart ? (
                                     <>
@@ -540,20 +564,6 @@ export const EventView: React.FC = () => {
                                     </>
                                 )}
                             </button>
-
-                            {/* Conditional Checkout Button */}
-                            {itemsCount > 0 ? (
-                                <button 
-                                    onClick={(e) => { e.stopPropagation(); openCart(); }}
-                                    className="col-span-1 md:flex-none flex items-center justify-center px-4 py-3.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(34,197,94,0.3)] bg-green-500 text-white hover:bg-green-400 border border-green-500 transform active:scale-95"
-                                >
-                                    <ShoppingBag className="w-4 h-4 mr-2" />
-                                    <span className="truncate">Finalizar ({itemsCount})</span>
-                                </button>
-                            ) : (
-                                /* Placeholder to keep grid balance if empty, or just hide on mobile to span full width */
-                                <div className="hidden md:block w-0" />
-                            )}
                         </div>
                    </div>
                </div>
