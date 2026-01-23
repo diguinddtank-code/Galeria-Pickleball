@@ -97,7 +97,7 @@ Poderia me enviar a chave PIX?`;
         {/* Items List */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
           {items.map((item) => {
-            const shortId = item.originalName || item.displayId || item.id.substring(0, 5).toUpperCase();
+            const displayName = item.originalName || item.displayId || item.id.substring(0, 5).toUpperCase();
             return (
                 <div key={item.id} className="flex gap-4 p-3 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all">
                 <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 relative">
@@ -108,7 +108,7 @@ Poderia me enviar a chave PIX?`;
                     <div>
                         <div className="flex justify-between items-start">
                             <span className="text-[10px] uppercase font-bold text-gray-400 font-mono tracking-wider bg-gray-100 px-1.5 py-0.5 rounded truncate max-w-[150px]">
-                                {item.originalName ? item.originalName : `REF: ${shortId}`}
+                                {displayName}
                             </span>
                             <span className="text-xs font-bold text-green-600">R$ 15,00</span>
                         </div>

@@ -17,9 +17,9 @@ import { PickleballEvent, Photo, PhotoUploadDraft } from '../types';
 const EVENTS_COLLECTION = 'events';
 const AUTH_KEY = 'pb_is_admin';
 
-// Helper to generate short readable IDs (e.g., "K9X2P")
+// Helper to generate short readable IDs (Fallback only)
 const generateShortId = () => {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // No I, 1, O, 0 to avoid confusion
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let result = '';
   for (let i = 0; i < 5; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -123,22 +123,22 @@ export const dataService = {
     try {
       const uploadPromises = drafts.map(async (draft) => {
         // 1. Upload to Storage
-        // We preserve the filename in storage path for sanity, though Firestore originalName is the key
         const fileRef = ref(storage, `events/${eventId}/${Date.now()}_${draft.file.name}`);
         await uploadBytes(fileRef, draft.file);
         const url = await getDownloadURL(fileRef);
 
-        // 2. Add to Firestore Subcollection with Metadata
-        // Parse tags string into array
+        // 2. Add to Firestore Subcollection
         const tagsArray = draft.tags.split(',').map(t => t.trim()).filter(t => t.length > 0);
         
-        // Generate Short ID (fallback)
-        const displayId = generateShortId();
+        // CRITICAL CHANGE: Use filename as the primary display ID
+        const originalName = draft.file.name;
+        // We set displayId to originalName so it shows up everywhere (Cards, Cart, WhatsApp)
+        const displayId = originalName; 
 
         const photoData = {
           url,
           displayId, 
-          originalName: draft.file.name, // SAVE ORIGINAL FILENAME
+          originalName,
           caption: draft.caption,
           tags: tagsArray,
           createdAt: Date.now()

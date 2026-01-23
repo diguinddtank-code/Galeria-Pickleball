@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, ArrowRight, Search, X, Layers, Calendar, ChevronRight } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as framerMotion, AnimatePresence } from 'framer-motion';
 import { dataService } from '../services/dataService';
 import { PickleballEvent } from '../types';
 import { Hero } from '../components/Hero';
+
+const motion = framerMotion as any;
 
 // Custom Animated Pickleball SVG Component (Used for Loader)
 const PickleballIcon = ({ className = "w-12 h-12" }: { className?: string }) => (

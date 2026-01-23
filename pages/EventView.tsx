@@ -1,10 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Calendar, MapPin, Share2, X, ChevronLeft, ChevronRight, Filter, Check, Plus, Trash2, Zap, Image as ImageIcon, Sparkles, ShieldAlert, ShoppingBag } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as framerMotion, AnimatePresence } from 'framer-motion';
 import { dataService } from '../services/dataService';
 import { PickleballEvent, Photo } from '../types';
 import { useCart } from '../context/CartContext';
+
+const motion = framerMotion as any;
 
 // Custom Animated Pickleball SVG Component
 const PickleballIcon = ({ className = "w-12 h-12" }: { className?: string }) => (
@@ -68,7 +70,8 @@ const ImageCard: React.FC<ImageCardProps> = ({ photo, onClick, index }) => {
   const { isInCart, addItem, removeItem } = useCart();
   const added = isInCart(photo.id);
   
-  // Use original name if available, otherwise fallback to displayId
+  // Prioritize Original Name. If not available, use displayId (which is now also filename for new uploads).
+  // Fallback to substring of ID only for legacy data.
   const displayName = photo.originalName || photo.displayId || photo.id.substring(0, 5).toUpperCase();
 
   const toggleCart = (e: React.MouseEvent) => {
@@ -113,7 +116,7 @@ const ImageCard: React.FC<ImageCardProps> = ({ photo, onClick, index }) => {
         <div className="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-black/60 to-transparent opacity-100 pointer-events-none z-20" />
 
         {/* ID Badge - Using Filename */}
-        <div className="absolute top-3 left-3 bg-black/40 backdrop-blur-md px-2 py-1 rounded-md text-[10px] font-mono text-white/90 border border-white/10 z-20 group-hover:bg-black/70 transition-colors truncate max-w-[120px]">
+        <div className="absolute top-3 left-3 bg-black/40 backdrop-blur-md px-2 py-1 rounded-md text-[10px] font-mono text-white/90 border border-white/10 z-20 group-hover:bg-black/70 transition-colors truncate max-w-[140px]">
             {displayName}
         </div>
 

@@ -1,7 +1,9 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion as framerMotion } from 'framer-motion';
 import { ArrowRight, Instagram } from 'lucide-react';
 import { Button } from './ui/Button';
+
+const motion = framerMotion as any;
 
 interface HeroProps {
   onOpenBooking: () => void;
