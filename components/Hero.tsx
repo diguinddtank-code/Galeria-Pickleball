@@ -40,7 +40,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
             
             {/* --- LEFT: Content --- */}
             <motion.div
-              className="w-full lg:w-7/12 text-center lg:text-left z-20"
+              className="w-full lg:w-6/12 text-center lg:text-left z-20"
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
@@ -79,34 +79,135 @@ export const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
               </div>
             </motion.div>
 
-            {/* --- RIGHT: Photo Stack Visuals --- */}
-            <div className="w-full lg:w-5/12 relative h-[450px] hidden md:flex items-center justify-center lg:justify-end perspective-1000 mt-10 lg:mt-0">
-                {/* Photo 1 (Back) */}
+            {/* --- RIGHT: Animated REMAKING Brand Composition --- */}
+            <div className="w-full lg:w-6/12 relative h-[500px] hidden md:flex items-center justify-center perspective-1000 mt-10 lg:mt-0">
+                
+                {/* 1. Background Glow & Atmosphere */}
+                <div className="absolute w-[500px] h-[500px] bg-gradient-radial from-pickle/10 to-transparent blur-[80px] animate-pulse-slow" />
+                
+                {/* 2. Main Glass Card Container */}
                 <motion.div 
-                    className="absolute w-64 h-80 md:w-72 md:h-96 bg-gray-800 rounded-xl shadow-2xl border-4 border-white transform rotate-[-6deg] overflow-hidden"
-                    initial={{ opacity: 0, rotate: -15, x: -50 }}
-                    animate={{ opacity: 1, rotate: -6, x: -40 }}
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.2, duration: 0.8 }}
+                    className="relative w-[380px] h-[380px] bg-white/5 backdrop-blur-2xl rounded-[40px] border border-white/10 shadow-2xl flex flex-col items-center justify-center p-8 overflow-hidden group hover:border-pickle/30 transition-colors duration-500"
                 >
-                     <img src="https://images.unsplash.com/photo-1599586120429-48285b6a8a81?q=80&w=1000" className="w-full h-full object-cover opacity-60 grayscale" alt="Event" />
+                    {/* Interior Grid Pattern */}
+                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.05] mix-blend-overlay" />
+                    
+                    {/* Interior Radial Gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none" />
+
+                    {/* --- THE ANIMATED SVG LOGO --- */}
+                    <div className="relative w-48 h-48 mb-6">
+                        <svg viewBox="0 0 200 200" className="w-full h-full overflow-visible">
+                            <defs>
+                                <linearGradient id="neonGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stopColor="#CCFF00" />
+                                    <stop offset="100%" stopColor="#22c55e" />
+                                </linearGradient>
+                                <filter id="glowHero">
+                                    <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                                    <feMerge>
+                                        <feMergeNode in="coloredBlur"/>
+                                        <feMergeNode in="SourceGraphic"/>
+                                    </feMerge>
+                                </filter>
+                            </defs>
+
+                            {/* Orbiting Ring 1 (Dashed) */}
+                            <motion.circle 
+                                cx="100" cy="100" r="90" 
+                                stroke="#ffffff" strokeWidth="1" strokeOpacity="0.2" fill="none"
+                                strokeDasharray="10 10"
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+                                style={{ originX: "100px", originY: "100px" }}
+                            />
+
+                            {/* Orbiting Ring 2 (Counter-Rotating) */}
+                            <motion.circle 
+                                cx="100" cy="100" r="75" 
+                                stroke="url(#neonGradient)" strokeWidth="1.5" fill="none"
+                                strokeDasharray="60 180"
+                                strokeLinecap="round"
+                                filter="url(#glowHero)"
+                                animate={{ rotate: -360 }}
+                                transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+                                style={{ originX: "100px", originY: "100px" }}
+                            />
+
+                            {/* Central Shutter Mechanism */}
+                            <motion.g 
+                                initial={{ scale: 0.9 }}
+                                animate={{ scale: [0.9, 1, 0.9] }}
+                                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                                style={{ originX: "100px", originY: "100px" }}
+                            >
+                                {/* Background Circle */}
+                                <circle cx="100" cy="100" r="50" fill="#0f172a" stroke="#ffffff" strokeWidth="2" strokeOpacity="0.1" />
+                                
+                                {/* Shutter Blades */}
+                                <g transform="translate(100 100)">
+                                    {[0, 60, 120, 180, 240, 300].map((angle, i) => (
+                                        <motion.path
+                                            key={i}
+                                            d="M0 -50 L20 -10 L0 30 L-20 -10 Z"
+                                            fill={i % 2 === 0 ? "#CCFF00" : "#ffffff"}
+                                            opacity="0.9"
+                                            transform={`rotate(${angle}) translate(0, -10)`}
+                                            initial={{ scale: 0.8 }}
+                                            animate={{ translateY: [0, -5, 0] }}
+                                            transition={{ duration: 3, repeat: Infinity, delay: i * 0.2 }}
+                                        />
+                                    ))}
+                                </g>
+
+                                {/* Center Lens */}
+                                <circle cx="100" cy="100" r="15" fill="white" className="animate-pulse" />
+                            </motion.g>
+                        </svg>
+                    </div>
+
+                    {/* Brand Name Typography */}
+                    <div className="text-center z-10">
+                        <motion.h2 
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.4 }}
+                            className="text-4xl font-display font-bold text-white tracking-widest leading-none mb-1"
+                        >
+                            REMAKING
+                        </motion.h2>
+                        <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: "100%" }}
+                            transition={{ delay: 0.6, duration: 0.8 }}
+                            className="h-0.5 bg-gradient-to-r from-transparent via-pickle to-transparent w-full mb-2"
+                        />
+                        <motion.span 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.8 }}
+                            className="text-sm font-mono text-gray-400 uppercase tracking-[0.5em] ml-1"
+                        >
+                            AGENCY
+                        </motion.span>
+                    </div>
                 </motion.div>
 
-                {/* Photo 2 (Front) */}
+                {/* Decorative Floating Particles */}
                 <motion.div 
-                    className="relative w-64 h-80 md:w-72 md:h-96 bg-gray-900 rounded-xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8)] border-[6px] border-white transform rotate-[3deg] z-20 overflow-hidden group cursor-pointer"
-                    initial={{ opacity: 0, scale: 0.9, y: 50 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ delay: 0.6, duration: 0.8 }}
-                    whileHover={{ scale: 1.02, rotate: 1 }}
-                    onClick={onOpenBooking}
-                >
-                     <img src="https://images.unsplash.com/photo-1626244422204-62927051a24d?q=80&w=1000" className="w-full h-full object-cover" alt="Main Event" />
-                     {/* Gradient overlay */}
-                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                     <div className="absolute bottom-6 left-0 w-full text-center">
-                        <span className="bg-pickle text-brand-dark px-3 py-1 text-xs font-bold uppercase">Disponível</span>
-                     </div>
-                </motion.div>
+                    animate={{ y: [-10, 10, -10] }}
+                    transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute top-20 right-20 w-3 h-3 bg-pickle rounded-full blur-[2px]"
+                />
+                <motion.div 
+                    animate={{ y: [10, -10, 10] }}
+                    transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute bottom-32 left-20 w-2 h-2 bg-white rounded-full blur-[1px]"
+                />
+
             </div>
         </div>
       </div>

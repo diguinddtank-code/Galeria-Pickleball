@@ -11,7 +11,7 @@ export const CartDrawer: React.FC = () => {
     subtotal, 
     discount, 
     total, 
-    discountPercent, 
+    unitPrice,
     itemsCount,
     isCartOpen,
     openCart,
@@ -21,16 +21,11 @@ export const CartDrawer: React.FC = () => {
   if (itemsCount === 0) return null;
 
   const handleCheckout = () => {
-    // Generate secure message using Filenames (Original Name) for easier order fulfillment
+    // Generate secure message using Filenames
     const photoList = items.map((p) => {
-        // Prioritize original filename, then displayId, then internal ID
         const refName = p.originalName || p.displayId || p.id.substring(0, 5).toUpperCase();
-        // CLEANUP: Strip extension for the message
         const cleanRefName = refName.replace(/\.[^/.]+$/, "");
-        
-        // Add event prefix if available
         const eventPrefix = p.eventName ? `[${p.eventName}] ` : '';
-
         return `✅ *${eventPrefix}${cleanRefName}*`;
     }).join('\n');
     
@@ -41,6 +36,7 @@ ${photoList}
 
 *Resumo:*
 🖼️ ${itemsCount} fotos selecionadas
+🏷️ Valor Unitário: R$ ${unitPrice.toFixed(2)}
 💰 Valor Final: *R$ ${total.toFixed(2)}*
 ${discount > 0 ? `🔥 Economia de: R$ ${discount.toFixed(2)}` : ''}
 
@@ -50,9 +46,14 @@ Poderia me enviar a chave PIX?`;
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encoded}`, '_blank');
   };
 
+  // Logic to show next tier
+  const nextTierCount = itemsCount < 3 ? 3 : itemsCount < 6 ? 6 : null;
+  const itemsNeeded = nextTierCount ? nextTierCount - itemsCount : 0;
+  const nextPrice = itemsCount < 3 ? 'R$ 7,00' : 'R$ 5,00';
+
   return (
     <>
-      {/* Floating Toggle Button - HIDDEN ON MOBILE (md:flex), because MobileNav handles it now */}
+      {/* Floating Toggle Button - HIDDEN ON MOBILE */}
       <button
         onClick={openCart}
         className={`hidden md:flex fixed bottom-8 right-8 z-50 items-center bg-pickle text-brand-dark px-6 py-4 rounded-full font-bold shadow-[0_0_20px_rgba(204,255,0,0.5)] transition-all transform hover:scale-105 active:scale-95 hover:shadow-[0_0_30px_rgba(204,255,0,0.7)] ${isCartOpen ? 'translate-y-24 opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}
@@ -91,11 +92,13 @@ Poderia me enviar a chave PIX?`;
         </div>
 
         {/* Alert/Upsell Banner */}
-        {itemsCount < 3 && (
-            <div className="bg-orange-50 p-3 flex items-start gap-3 border-b border-orange-100">
-                <AlertCircle className="w-5 h-5 text-orange-500 flex-shrink-0" />
-                <p className="text-xs text-orange-800 leading-tight">
-                    <span className="font-bold">Dica:</span> Adicione mais <span className="font-bold">{3 - itemsCount} fotos</span> para ganhar <span className="font-bold">10% de desconto</span> imediato!
+        {itemsNeeded > 0 && (
+            <div className="bg-gradient-to-r from-pickle/20 to-pickle/5 p-4 flex items-center gap-3 border-b border-pickle/10">
+                <div className="bg-brand-dark p-2 rounded-full">
+                    <AlertCircle className="w-4 h-4 text-pickle" />
+                </div>
+                <p className="text-xs text-brand-dark leading-tight">
+                    Leve mais <span className="font-bold">{itemsNeeded} fotos</span> e pague apenas <span className="font-bold bg-pickle px-1 rounded">{nextPrice}</span> em cada foto!
                 </p>
             </div>
         )}
@@ -104,7 +107,6 @@ Poderia me enviar a chave PIX?`;
         <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
           {items.map((item) => {
             const rawName = item.originalName || item.displayId || item.id.substring(0, 5).toUpperCase();
-            // Clean display name in cart UI
             const displayName = rawName.replace(/\.[^/.]+$/, "");
             
             return (
@@ -119,7 +121,7 @@ Poderia me enviar a chave PIX?`;
                             <span className="text-[10px] uppercase font-bold text-gray-400 font-mono tracking-wider bg-gray-100 px-1.5 py-0.5 rounded truncate max-w-[150px]">
                                 {displayName}
                             </span>
-                            <span className="text-xs font-bold text-green-600">R$ 15,00</span>
+                            <span className="text-xs font-bold text-green-600">R$ {unitPrice.toFixed(2)}</span>
                         </div>
                         <h4 className="text-sm font-bold text-gray-800 line-clamp-1 mt-1">{item.caption || 'Pickleball Action'}</h4>
                     </div>
@@ -142,29 +144,41 @@ Poderia me enviar a chave PIX?`;
            {/* Progressive Discount Bar */}
            <div className="mb-6">
               <div className="flex justify-between text-xs font-bold text-gray-500 uppercase mb-2">
-                 <span>Nível de Desconto</span>
-                 <span className="text-pickle-600 bg-pickle/10 px-2 py-0.5 rounded">{Math.round(discountPercent * 100)}% OFF</span>
+                 <span>Preço por Foto</span>
+                 <span className="text-brand-dark bg-pickle px-2 py-0.5 rounded">Atual: R$ {unitPrice.toFixed(2)}</span>
               </div>
-              <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden flex shadow-inner">
-                 <div className={`h-full transition-all duration-500 border-r border-white/50 ${itemsCount >= 3 ? 'bg-yellow-400' : 'bg-gray-200'}`} style={{ width: '33%' }} title="3+ Fotos" />
-                 <div className={`h-full transition-all duration-500 border-r border-white/50 ${itemsCount >= 6 ? 'bg-orange-400' : 'bg-gray-200'}`} style={{ width: '33%' }} title="6+ Fotos" />
-                 <div className={`h-full transition-all duration-500 ${itemsCount > 10 ? 'bg-green-500' : 'bg-gray-200'}`} style={{ width: '34%' }} title="10+ Fotos" />
+              
+              {/* Custom Tier Bar */}
+              <div className="h-4 bg-gray-100 rounded-full overflow-hidden flex shadow-inner text-[8px] font-bold text-center leading-4 text-brand-dark/50 relative">
+                 {/* Tier 1: 1-2 */}
+                 <div className={`transition-all duration-500 border-r border-white/50 flex items-center justify-center ${itemsCount > 0 ? 'bg-gray-300 text-gray-700' : ''}`} style={{ width: '30%' }}>
+                    R$ 12
+                 </div>
+                 {/* Tier 2: 3-5 */}
+                 <div className={`transition-all duration-500 border-r border-white/50 flex items-center justify-center ${itemsCount >= 3 ? 'bg-pickle-300 text-brand-dark' : ''}`} style={{ width: '35%' }}>
+                    R$ 7
+                 </div>
+                 {/* Tier 3: 6+ */}
+                 <div className={`transition-all duration-500 flex items-center justify-center ${itemsCount >= 6 ? 'bg-pickle text-brand-dark' : ''}`} style={{ width: '35%' }}>
+                    R$ 5 (Melhor)
+                 </div>
               </div>
+              
               <div className="flex justify-between text-[9px] text-gray-400 mt-1.5 font-medium uppercase tracking-wide">
-                 <span className={itemsCount >= 3 ? 'text-yellow-600 font-bold' : ''}>Bronze (10%)</span>
-                 <span className={itemsCount >= 6 ? 'text-orange-600 font-bold' : ''}>Prata (20%)</span>
-                 <span className={itemsCount > 10 ? 'text-green-600 font-bold' : ''}>Ouro (30%)</span>
+                 <span>1-2 Fotos</span>
+                 <span>3-5 Fotos</span>
+                 <span>6+ Fotos</span>
               </div>
            </div>
 
            <div className="space-y-2 mb-6">
               <div className="flex justify-between text-sm text-gray-600">
-                <span>Subtotal ({itemsCount} itens)</span>
-                <span>R$ {subtotal.toFixed(2)}</span>
+                <span>Subtotal (Sem Desconto)</span>
+                <span className="line-through text-gray-400">R$ {subtotal.toFixed(2)}</span>
               </div>
               {discount > 0 && (
                 <div className="flex justify-between text-sm text-pickle-700 font-bold bg-pickle/10 p-2 rounded-lg">
-                    <span className="flex items-center"><Check className="w-3 h-3 mr-1" /> Desconto Aplicado</span>
+                    <span className="flex items-center"><Check className="w-3 h-3 mr-1" /> Economia de Pacote</span>
                     <span>- R$ {discount.toFixed(2)}</span>
                 </div>
               )}

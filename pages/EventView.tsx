@@ -300,9 +300,11 @@ export const EventView: React.FC = () => {
     }
   };
 
-  const nextDiscountTier = itemsCount < 3 ? 3 : itemsCount < 6 ? 6 : itemsCount < 10 ? 10 : null;
+  // -- UPDATED DISCOUNT LOGIC FOR UPSELL --
+  const nextDiscountTier = itemsCount < 3 ? 3 : itemsCount < 6 ? 6 : null;
   const itemsNeeded = nextDiscountTier ? nextDiscountTier - itemsCount : 0;
-  const nextDiscountValue = nextDiscountTier === 3 ? '10%' : nextDiscountTier === 6 ? '20%' : '30%';
+  // If moving to tier 2 (>=3), price is 7. If moving to tier 3 (>=6), price is 5.
+  const nextDiscountValue = itemsCount < 3 ? 'R$ 7,00/cada' : 'R$ 5,00/cada';
 
   if (loading) return <PickleballLoader />;
   if (!event) return <div className="min-h-screen flex items-center justify-center text-gray-500">Evento não encontrado.</div>;
@@ -523,10 +525,11 @@ export const EventView: React.FC = () => {
                    <div className="w-full bg-brand-dark/50 py-2 px-4 text-center border-b border-white/5">
                         <p className="text-[10px] md:text-xs text-gray-300">
                             <Sparkles className="w-3 h-3 inline-block text-yellow-400 mr-1" />
-                            Mais <span className="text-white font-bold">{itemsNeeded} fotos</span> = <span className="text-pickle font-bold">{nextDiscountValue} OFF</span>
+                            Mais <span className="text-white font-bold">{itemsNeeded} fotos</span> = <span className="text-pickle font-bold">{nextDiscountValue}</span>
                         </p>
                         <div className="h-0.5 w-full bg-gray-700 mt-1 max-w-xs mx-auto rounded-full overflow-hidden">
-                             <div className="h-full bg-pickle transition-all duration-500" style={{ width: `${(itemsCount / nextDiscountTier!) * 100}%` }}></div>
+                             {/* Approx progress based on tiers (6 is max tier start) */}
+                             <div className="h-full bg-pickle transition-all duration-500" style={{ width: `${Math.min((itemsCount / 6) * 100, 100)}%` }}></div>
                         </div>
                    </div>
                )}

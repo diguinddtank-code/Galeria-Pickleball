@@ -12,6 +12,7 @@ interface CartContextType {
   discount: number;
   discountPercent: number;
   itemsCount: number;
+  unitPrice: number; // New field to expose current unit price
   // UI State
   isCartOpen: boolean;
   openCart: () => void;
@@ -49,24 +50,23 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const closeCart = () => setIsCartOpen(false);
   const toggleCart = () => setIsCartOpen(prev => !prev);
 
-  // Pricing Logic
-  const PRICE_PER_PHOTO = 15; // Updated to R$ 15.00
+  // --- PRICING LOGIC UPDATE ---
   const itemsCount = items.length;
-  const subtotal = itemsCount * PRICE_PER_PHOTO;
-
-  let discountPercent = 0;
+  const BASE_PRICE = 12; // R$ 12.00 initially
   
-  // Progressive Discount Logic
-  if (itemsCount >= 3 && itemsCount <= 5) {
-    discountPercent = 0.10; // 10% for 3-5 photos
-  } else if (itemsCount >= 6 && itemsCount <= 10) {
-    discountPercent = 0.20; // 20% for 6-10 photos
-  } else if (itemsCount > 10) {
-    discountPercent = 0.30; // 30% for >10 photos
+  let unitPrice = BASE_PRICE;
+
+  if (itemsCount > 5) {
+    unitPrice = 5; // R$ 5.00 each if > 5 (6 or more)
+  } else if (itemsCount >= 3) {
+    unitPrice = 7; // R$ 7.00 each if >= 3
   }
 
-  const discount = subtotal * discountPercent;
-  const total = subtotal - discount;
+  // Subtotal is based on the base price to show the "value" saved
+  const subtotal = itemsCount * BASE_PRICE; 
+  const total = itemsCount * unitPrice;
+  const discount = subtotal - total;
+  const discountPercent = subtotal > 0 ? discount / subtotal : 0;
 
   return (
     <CartContext.Provider value={{
@@ -80,6 +80,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       discount,
       discountPercent,
       itemsCount,
+      unitPrice,
       isCartOpen,
       openCart,
       closeCart,
