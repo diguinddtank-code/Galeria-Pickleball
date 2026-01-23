@@ -619,7 +619,7 @@ export const Admin: React.FC = () => {
                                     <X className="w-4 h-4" />
                                 </button>
                                 <div className="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded backdrop-blur-md truncate max-w-[90%]">
-                                    {draft.file.name}
+                                    {draft.file.name.replace(/\.[^/.]+$/, "")}
                                 </div>
                             </div>
                             <div className="p-4 space-y-3">

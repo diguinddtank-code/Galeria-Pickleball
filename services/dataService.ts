@@ -130,10 +130,12 @@ export const dataService = {
         // 2. Add to Firestore Subcollection
         const tagsArray = draft.tags.split(',').map(t => t.trim()).filter(t => t.length > 0);
         
-        // CRITICAL CHANGE: Use filename as the primary display ID
+        // CRITICAL CHANGE: Use filename as the primary display ID and REMOVE EXTENSION
         const originalName = draft.file.name;
-        // We set displayId to originalName so it shows up everywhere (Cards, Cart, WhatsApp)
-        const displayId = originalName; 
+        // Strip extension regex (removes last dot and everything after it)
+        const nameWithoutExt = originalName.replace(/\.[^/.]+$/, "");
+        
+        const displayId = nameWithoutExt; 
 
         const photoData = {
           url,

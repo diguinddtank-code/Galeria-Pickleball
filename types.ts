@@ -6,6 +6,7 @@ export interface Photo {
   caption?: string;
   tags?: string[];
   createdAt: number;
+  eventName?: string; // Nome do evento para exibição no carrinho/whatsapp
 }
 
 export interface PickleballEvent {

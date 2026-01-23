@@ -25,7 +25,13 @@ export const CartDrawer: React.FC = () => {
     const photoList = items.map((p) => {
         // Prioritize original filename, then displayId, then internal ID
         const refName = p.originalName || p.displayId || p.id.substring(0, 5).toUpperCase();
-        return `✅ *${refName}*`;
+        // CLEANUP: Strip extension for the message
+        const cleanRefName = refName.replace(/\.[^/.]+$/, "");
+        
+        // Add event prefix if available
+        const eventPrefix = p.eventName ? `[${p.eventName}] ` : '';
+
+        return `✅ *${eventPrefix}${cleanRefName}*`;
     }).join('\n');
     
     const message = `Olá! Quero liberar minhas fotos em alta resolução da *Remaking Agency*.
@@ -97,7 +103,10 @@ Poderia me enviar a chave PIX?`;
         {/* Items List */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
           {items.map((item) => {
-            const displayName = item.originalName || item.displayId || item.id.substring(0, 5).toUpperCase();
+            const rawName = item.originalName || item.displayId || item.id.substring(0, 5).toUpperCase();
+            // Clean display name in cart UI
+            const displayName = rawName.replace(/\.[^/.]+$/, "");
+            
             return (
                 <div key={item.id} className="flex gap-4 p-3 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all">
                 <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 relative">

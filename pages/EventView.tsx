@@ -8,6 +8,14 @@ import { useCart } from '../context/CartContext';
 
 const motion = framerMotion as any;
 
+// Helper to strip extension for display
+const getCleanName = (photo: Photo) => {
+    // Prioritize displayId (which is stripped in new uploads), then originalName, then ID fallback
+    const raw = photo.displayId || photo.originalName || photo.id.substring(0, 5).toUpperCase();
+    // Regex ensures extension is removed even for legacy data
+    return raw.replace(/\.[^/.]+$/, "");
+};
+
 // Custom Animated Pickleball SVG Component
 const PickleballIcon = ({ className = "w-12 h-12" }: { className?: string }) => (
   <svg viewBox="0 0 100 100" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -70,9 +78,7 @@ const ImageCard: React.FC<ImageCardProps> = ({ photo, onClick, index }) => {
   const { isInCart, addItem, removeItem } = useCart();
   const added = isInCart(photo.id);
   
-  // Prioritize Original Name. If not available, use displayId (which is now also filename for new uploads).
-  // Fallback to substring of ID only for legacy data.
-  const displayName = photo.originalName || photo.displayId || photo.id.substring(0, 5).toUpperCase();
+  const displayName = getCleanName(photo);
 
   const toggleCart = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -304,8 +310,7 @@ export const EventView: React.FC = () => {
 
   const selectedPhoto = selectedIndex !== null ? filteredPhotos[selectedIndex] : null;
   const isSelectedInCart = selectedPhoto ? isInCart(selectedPhoto.id) : false;
-  // Use Filename for display in Modal
-  const selectedDisplayName = selectedPhoto ? (selectedPhoto.originalName || selectedPhoto.displayId || selectedPhoto.id.substring(0, 5).toUpperCase()) : '';
+  const selectedDisplayName = selectedPhoto ? getCleanName(selectedPhoto) : '';
 
   return (
     <div className="min-h-screen bg-gray-50 select-none pb-20">
@@ -385,7 +390,7 @@ export const EventView: React.FC = () => {
           {filteredPhotos.map((photo, index) => (
             <ImageCard 
                 key={photo.id} 
-                photo={photo} 
+                photo={{...photo, eventName: event?.title}} 
                 index={index}
                 onClick={() => setSelectedIndex(index)} 
             />
@@ -554,7 +559,7 @@ export const EventView: React.FC = () => {
 
                             {/* 2. Eu Quero Essa Button (Right / Primary) */}
                             <button 
-                                onClick={(e) => handleToggleCart(e, selectedPhoto)}
+                                onClick={(e) => handleToggleCart(e, { ...selectedPhoto, eventName: event?.title })}
                                 className={`col-span-1 md:flex-none md:min-w-[180px] flex items-center justify-center px-4 py-3.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all shadow-lg transform active:scale-95 border ${
                                     isSelectedInCart 
                                     ? 'bg-red-500 text-white border-red-500 hover:bg-red-600'
