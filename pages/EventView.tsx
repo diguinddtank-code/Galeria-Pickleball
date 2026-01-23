@@ -34,25 +34,23 @@ const PickleballLoader = () => (
     </div>
 );
 
-// WATERMARK COMPONENT - EXTREME SECURITY
+// WATERMARK COMPONENT - IMPROVED LEGIBILITY
 const WatermarkOverlay = () => (
     <>
-        <div className="absolute inset-0 z-10 pointer-events-none select-none overflow-hidden opacity-[0.55] mix-blend-overlay">
+        {/* Diagonal Watermark - Left to Right */}
+        <div className="absolute inset-0 z-10 pointer-events-none select-none overflow-hidden opacity-[0.4]">
             <div className="w-full h-full" style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg width='70' height='70' viewBox='0 0 70 70' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-weight='900' font-size='10' fill='white' text-anchor='middle' dominant-baseline='middle' transform='rotate(-45 35 35)'%3E@remakingagency%3C/text%3E%3C/svg%3E")`,
+                backgroundImage: `url("data:image/svg+xml,%3Csvg width='150' height='150' viewBox='0 0 150 150' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-weight='900' font-size='14' fill='white' stroke='rgba(0,0,0,0.5)' stroke-width='0.5' text-anchor='middle' dominant-baseline='middle' transform='rotate(-45 75 75)'%3E@remakingagency%3C/text%3E%3C/svg%3E")`,
                 backgroundRepeat: 'repeat'
             }}></div>
         </div>
-        <div className="absolute inset-0 z-10 pointer-events-none select-none overflow-hidden opacity-[0.55] mix-blend-overlay">
+        
+        {/* Center Big Watermark */}
+        <div className="absolute inset-0 z-10 pointer-events-none select-none overflow-hidden opacity-[0.2] flex items-center justify-center">
              <div className="w-full h-full" style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg width='70' height='70' viewBox='0 0 70 70' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-weight='900' font-size='10' fill='white' text-anchor='middle' dominant-baseline='middle' transform='rotate(45 35 35)'%3E@remakingagency%3C/text%3E%3C/svg%3E")`,
-                backgroundRepeat: 'repeat'
-            }}></div>
-        </div>
-        <div className="absolute inset-0 z-10 pointer-events-none select-none overflow-hidden opacity-[0.3] mix-blend-overlay">
-             <div className="w-full h-full" style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='50' viewBox='0 0 100 50' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-weight='900' font-size='9' fill='white' text-anchor='middle' dominant-baseline='middle' opacity='0.8'%3EREMAKING%3C/text%3E%3C/svg%3E")`,
-                backgroundRepeat: 'repeat'
+                backgroundImage: `url("data:image/svg+xml,%3Csvg width='300' height='150' viewBox='0 0 300 150' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-weight='900' font-size='24' fill='white' stroke='rgba(0,0,0,0.3)' stroke-width='1' text-anchor='middle' dominant-baseline='middle'%3EREMAKING%3C/text%3E%3C/svg%3E")`,
+                backgroundRepeat: 'repeat',
+                backgroundPosition: 'center'
             }}></div>
         </div>
     </>

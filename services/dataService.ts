@@ -52,13 +52,21 @@ export const dataService = {
 
       // Fetch photos subcollection
       const photosColRef = collection(db, EVENTS_COLLECTION, id, 'photos');
-      const q = query(photosColRef, orderBy('createdAt', 'desc'));
-      const photosSnapshot = await getDocs(q);
+      // Fetch without orderBy first to get everything, then sort client-side to ensure robust alphanumeric sort
+      const photosSnapshot = await getDocs(photosColRef);
       
       const photos = photosSnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as Photo[];
+
+      // Sort photos ALPHABETICALLY by filename/displayId
+      photos.sort((a, b) => {
+         const nameA = a.displayId || a.originalName || a.id;
+         const nameB = b.displayId || b.originalName || b.id;
+         // Numeric true ensures "Photo 10" comes after "Photo 2"
+         return nameA.localeCompare(nameB, undefined, { numeric: true, sensitivity: 'base' });
+      });
 
       return {
         id: eventDoc.id,
