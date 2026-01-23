@@ -62,7 +62,8 @@ const NoiseOverlay = () => (
     </div>
 );
 
-const PREVIEW_QUALITY_CLASS = "contrast-[1.05] brightness-[1.02]";
+// Added blur-[2.5px] for "leve embaçada"
+const PREVIEW_QUALITY_CLASS = "contrast-[1.1] brightness-[1.05] blur-[2.5px]";
 
 // --- PREMIUM IMAGE CARD COMPONENT ---
 interface ImageCardProps {
