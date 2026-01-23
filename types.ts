@@ -1,6 +1,7 @@
 export interface Photo {
   id: string;
   displayId?: string; // New short, readable ID (e.g., "A1B2C")
+  originalName?: string; // Nome original do arquivo (ex: DSC01234.jpg)
   url: string;
   caption?: string;
   tags?: string[];

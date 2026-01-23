@@ -123,6 +123,7 @@ export const dataService = {
     try {
       const uploadPromises = drafts.map(async (draft) => {
         // 1. Upload to Storage
+        // We preserve the filename in storage path for sanity, though Firestore originalName is the key
         const fileRef = ref(storage, `events/${eventId}/${Date.now()}_${draft.file.name}`);
         await uploadBytes(fileRef, draft.file);
         const url = await getDownloadURL(fileRef);
@@ -131,12 +132,13 @@ export const dataService = {
         // Parse tags string into array
         const tagsArray = draft.tags.split(',').map(t => t.trim()).filter(t => t.length > 0);
         
-        // Generate Short ID
+        // Generate Short ID (fallback)
         const displayId = generateShortId();
 
         const photoData = {
           url,
-          displayId, // Store the short ID
+          displayId, 
+          originalName: draft.file.name, // SAVE ORIGINAL FILENAME
           caption: draft.caption,
           tags: tagsArray,
           createdAt: Date.now()

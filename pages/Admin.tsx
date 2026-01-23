@@ -170,7 +170,7 @@ export const Admin: React.FC = () => {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || !uploadEventId) return;
     
-    const files = Array.from(e.target.files);
+    const files = Array.from(e.target.files) as File[];
     const newDrafts: PhotoUploadDraft[] = files.map(file => ({
         file,
         preview: URL.createObjectURL(file),
@@ -405,7 +405,7 @@ export const Admin: React.FC = () => {
         onChange={handleCoverSelect}
       />
 
-      {/* MODAL: Create/Edit Event - RESPONSIVE FIX */}
+      {/* MODAL: Create/Edit Event */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh] border border-gray-200 animate-[fadeIn_0.2s_ease-out]">
@@ -579,76 +579,73 @@ export const Admin: React.FC = () => {
             {/* Header */}
             <div className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center shadow-sm z-10">
                 <div>
-                    <h2 className="text-xl font-bold text-gray-900 font-display uppercase">Upload de Fotos</h2>
-                    <p className="text-sm text-gray-500">{stagedFiles.length} fotos selecionadas para envio</p>
+                    <h3 className="text-xl font-bold text-gray-900 font-display uppercase tracking-wide">
+                        Upload de Fotos
+                    </h3>
+                    <p className="text-xs text-gray-500">{stagedFiles.length} fotos selecionadas</p>
                 </div>
-                <div className="flex gap-4">
-                     <button 
+                <div className="flex gap-3">
+                    <button 
                         onClick={() => {
-                            setStagedFiles([]); 
+                            setStagedFiles([]);
                             setIsUploadModalOpen(false);
                             setUploadEventId(null);
                         }}
-                        className="px-6 py-2 text-gray-500 font-bold hover:text-red-500 transition-colors"
-                     >
+                        className="px-4 py-2 text-gray-500 hover:text-gray-700 font-bold uppercase text-xs tracking-wider"
+                    >
                         Cancelar
-                     </button>
-                     <button 
+                    </button>
+                    <button 
                         onClick={confirmUpload}
                         disabled={loading}
-                        className="bg-pickle text-brand-dark px-8 py-2 rounded-full font-bold uppercase tracking-wider shadow-lg hover:bg-pickle-400 transition-all flex items-center"
-                     >
-                        {loading ? (
-                            <>Enviando <span className="animate-spin ml-2">⏳</span></>
-                        ) : (
-                            <>Confirmar Upload <Check className="ml-2 w-4 h-4" /></>
-                        )}
-                     </button>
+                        className="px-6 py-2 bg-pickle text-brand-dark rounded-lg hover:bg-pickle-400 font-bold uppercase text-xs tracking-wider shadow-md transition-all flex items-center"
+                    >
+                        {loading ? 'Enviando...' : 'Confirmar Envio'}
+                    </button>
                 </div>
             </div>
 
-            {/* Staging Grid */}
-            <div className="flex-1 overflow-y-auto bg-gray-50 p-6 md:p-10">
-                <div className="max-w-7xl mx-auto">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {stagedFiles.map((draft, index) => (
-                            <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden group hover:shadow-md transition-all">
-                                <div className="relative aspect-[4/3] bg-gray-100">
-                                    <img src={draft.preview} alt="Preview" className="w-full h-full object-cover" />
-                                    <button 
-                                        onClick={() => removeDraft(index)}
-                                        className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 shadow-md"
-                                    >
-                                        <X className="w-4 h-4" />
-                                    </button>
-                                </div>
-                                <div className="p-4 space-y-3">
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Legenda</label>
-                                        <input 
-                                            type="text" 
-                                            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-1 focus:ring-pickle outline-none"
-                                            placeholder="Ex: Final Masculina"
-                                            value={draft.caption}
-                                            onChange={(e) => updateDraft(index, 'caption', e.target.value)}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1 flex items-center">
-                                            <Tag className="w-3 h-3 mr-1" /> Tags
-                                        </label>
-                                        <input 
-                                            type="text" 
-                                            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-1 focus:ring-pickle outline-none"
-                                            placeholder="João, Maria, Ouro..."
-                                            value={draft.tags}
-                                            onChange={(e) => updateDraft(index, 'tags', e.target.value)}
-                                        />
-                                    </div>
+            {/* List */}
+            <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
+                    {stagedFiles.map((draft, index) => (
+                        <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden group">
+                            <div className="relative h-48 bg-gray-100">
+                                <img src={draft.preview} alt="Preview" className="w-full h-full object-cover" />
+                                <button 
+                                    onClick={() => removeDraft(index)}
+                                    className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 shadow-sm"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                                <div className="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded backdrop-blur-md truncate max-w-[90%]">
+                                    {draft.file.name}
                                 </div>
                             </div>
-                        ))}
-                    </div>
+                            <div className="p-4 space-y-3">
+                                <div>
+                                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Legenda (Opcional)</label>
+                                    <input 
+                                        type="text" 
+                                        value={draft.caption} 
+                                        onChange={(e) => updateDraft(index, 'caption', e.target.value)}
+                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-1 focus:ring-pickle outline-none"
+                                        placeholder="Final Mista..."
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tags (Separadas por vírgula)</label>
+                                    <input 
+                                        type="text" 
+                                        value={draft.tags} 
+                                        onChange={(e) => updateDraft(index, 'tags', e.target.value)}
+                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-1 focus:ring-pickle outline-none"
+                                        placeholder="joao, maria, ouro"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>

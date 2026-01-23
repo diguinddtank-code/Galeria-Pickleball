@@ -67,7 +67,9 @@ const ImageCard: React.FC<ImageCardProps> = ({ photo, onClick, index }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const { isInCart, addItem, removeItem } = useCart();
   const added = isInCart(photo.id);
-  const displayId = photo.displayId || photo.id.substring(0, 5).toUpperCase();
+  
+  // Use original name if available, otherwise fallback to displayId
+  const displayName = photo.originalName || photo.displayId || photo.id.substring(0, 5).toUpperCase();
 
   const toggleCart = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -110,9 +112,9 @@ const ImageCard: React.FC<ImageCardProps> = ({ photo, onClick, index }) => {
         {/* Top Gradient for text readability */}
         <div className="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-black/60 to-transparent opacity-100 pointer-events-none z-20" />
 
-        {/* ID Badge */}
-        <div className="absolute top-3 left-3 bg-black/40 backdrop-blur-md px-2 py-1 rounded-md text-[10px] font-mono text-white/90 border border-white/10 z-20 group-hover:bg-black/70 transition-colors">
-            #{displayId}
+        {/* ID Badge - Using Filename */}
+        <div className="absolute top-3 left-3 bg-black/40 backdrop-blur-md px-2 py-1 rounded-md text-[10px] font-mono text-white/90 border border-white/10 z-20 group-hover:bg-black/70 transition-colors truncate max-w-[120px]">
+            {displayName}
         </div>
 
         {/* Quick Add Button - ALWAYS VISIBLE NOW */}
@@ -299,7 +301,8 @@ export const EventView: React.FC = () => {
 
   const selectedPhoto = selectedIndex !== null ? filteredPhotos[selectedIndex] : null;
   const isSelectedInCart = selectedPhoto ? isInCart(selectedPhoto.id) : false;
-  const selectedDisplayId = selectedPhoto ? (selectedPhoto.displayId || selectedPhoto.id.substring(0, 5).toUpperCase()) : '';
+  // Use Filename for display in Modal
+  const selectedDisplayName = selectedPhoto ? (selectedPhoto.originalName || selectedPhoto.displayId || selectedPhoto.id.substring(0, 5).toUpperCase()) : '';
 
   return (
     <div className="min-h-screen bg-gray-50 select-none pb-20">
@@ -421,7 +424,8 @@ export const EventView: React.FC = () => {
                             Preview
                         </div>
                     </div>
-                    <div className="text-pickle font-mono text-xs mt-1 opacity-80">REF: {selectedDisplayId}</div>
+                    {/* Display Filename in Modal */}
+                    <div className="text-pickle font-mono text-xs mt-1 opacity-80">{selectedDisplayName}</div>
                 </div>
 
                 <div className="flex items-center gap-3 pointer-events-auto">

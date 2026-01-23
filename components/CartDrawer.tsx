@@ -21,10 +21,11 @@ export const CartDrawer: React.FC = () => {
   if (itemsCount === 0) return null;
 
   const handleCheckout = () => {
-    // Generate secure message using Short IDs
+    // Generate secure message using Filenames (Original Name) for easier order fulfillment
     const photoList = items.map((p) => {
-        const shortId = p.displayId || p.id.substring(0, 5).toUpperCase();
-        return `✅ *#${shortId}*`;
+        // Prioritize original filename, then displayId, then internal ID
+        const refName = p.originalName || p.displayId || p.id.substring(0, 5).toUpperCase();
+        return `✅ *${refName}*`;
     }).join('\n');
     
     const message = `Olá! Quero liberar minhas fotos em alta resolução da *Remaking Agency*.
@@ -96,7 +97,7 @@ Poderia me enviar a chave PIX?`;
         {/* Items List */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
           {items.map((item) => {
-            const shortId = item.displayId || item.id.substring(0, 5).toUpperCase();
+            const shortId = item.originalName || item.displayId || item.id.substring(0, 5).toUpperCase();
             return (
                 <div key={item.id} className="flex gap-4 p-3 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all">
                 <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 relative">
@@ -106,7 +107,9 @@ Poderia me enviar a chave PIX?`;
                 <div className="flex-1 flex flex-col justify-between">
                     <div>
                         <div className="flex justify-between items-start">
-                            <span className="text-[10px] uppercase font-bold text-gray-400 font-mono tracking-wider bg-gray-100 px-1.5 py-0.5 rounded">REF: {shortId}</span>
+                            <span className="text-[10px] uppercase font-bold text-gray-400 font-mono tracking-wider bg-gray-100 px-1.5 py-0.5 rounded truncate max-w-[150px]">
+                                {item.originalName ? item.originalName : `REF: ${shortId}`}
+                            </span>
                             <span className="text-xs font-bold text-green-600">R$ 15,00</span>
                         </div>
                         <h4 className="text-sm font-bold text-gray-800 line-clamp-1 mt-1">{item.caption || 'Pickleball Action'}</h4>
